@@ -18,4 +18,8 @@ func main() {
 	if err := db.PingContext(ctx); err != nil {
 		log.Fatal(err)
 	}
+
+	if err := db.Close(); err != nil {
+		log.Fatal(err)
+	}
 }
