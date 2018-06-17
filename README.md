@@ -10,3 +10,6 @@ See _example
 
 Q: Can I use `?` for placeholders?
 A: No. Please use `$` for the variable prefix in SPARQL.
+
+Q: Which version's golang is supported?
+A: go 1.10.x

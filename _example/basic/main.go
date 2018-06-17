@@ -3,23 +3,31 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/garsue/go-sparql"
 )
 
 func main() {
-	cli := sparql.New("http://ja.dbpedia.org/sparql")
+	cli := sparql.New("http://ja.dbpedia.org/sparql", 100, 90*time.Second, 30*time.Second)
 
 	ctx := context.Background()
 	if err := cli.Ping(ctx); err != nil {
 		log.Fatal(err)
 	}
 
-	result, err := cli.Query(ctx, `select distinct * where { <http://ja.dbpedia.org/resource/東京都> ?p ?o .  } LIMIT 100`, nil)
+	result, err := cli.Query(ctx, `select distinct * where { <http://ja.dbpedia.org/resource/東京都> ?p ?o .  } LIMIT 10`)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if result == nil {
-		log.Fatal("result should not be nil")
+	log.Printf("%+v\n", result)
+
+	result, err = cli.Query(ctx, `select * where { $s <http://dbpedia.org/ontology/wikiPageID> $1 .  } LIMIT 1`, sparql.Param{
+		Ordinal: 1,
+		Value:   int64(1529557),
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
+	log.Printf("%+v\n", result)
 }
