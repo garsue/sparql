@@ -3,19 +3,19 @@ package sparql
 import (
 	"database/sql"
 	"database/sql/driver"
-	"log"
 	"net/http"
-	"os"
+
+	"github.com/garsue/go-sparql/logger"
 )
 
 // Driver accesses SPARQL sources.
 type Driver struct {
-	Logger *log.Logger
+	Logger *logger.Logger
 }
 
 func init() {
 	sql.Register("sparql", &Driver{
-		Logger: log.New(os.Stdout, "[SPARQL:DEBUG]", log.LstdFlags),
+		Logger: logger.New(),
 	})
 }
 

@@ -19,6 +19,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	rows, err := db.QueryContext(ctx, `select distinct * where { <http://ja.dbpedia.org/resource/東京都> ?p ?o .  } LIMIT 100`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := rows.Close(); err != nil {
+		log.Fatal(err)
+	}
+
 	if err := db.Close(); err != nil {
 		log.Fatal(err)
 	}
