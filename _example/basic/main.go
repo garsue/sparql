@@ -24,7 +24,7 @@ func main() {
 
 	result, err = cli.Query(ctx, `select * where { $s <http://dbpedia.org/ontology/wikiPageID> $1 .  } LIMIT 1`, sparql.Param{
 		Ordinal: 1,
-		Value:   int64(1529557),
+		Value:   1529557,
 	})
 	if err != nil {
 		log.Fatal(err)
