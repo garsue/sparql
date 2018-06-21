@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -133,7 +131,8 @@ func (c *Client) Query(ctx context.Context, query string, args ...Param) (*Query
 	}
 
 	var result QueryResult
-	body := io.TeeReader(resp.Body, os.Stdout)
+	//body := io.TeeReader(resp.Body, os.Stdout)
+	body := resp.Body
 	if err := json.NewDecoder(body).Decode(&result); err != nil {
 		return nil, err
 	}

@@ -18,7 +18,7 @@ type Rows struct {
 	queryResult *sparql.QueryResult
 }
 
-// Columns retunrs the names of the columns.
+// Columns returns the names of the columns.
 func (r *Rows) Columns() []string {
 	return r.queryResult.Head.Vars
 }
@@ -34,7 +34,10 @@ func (r *Rows) Close() error {
 func (r *Rows) Next(dest []driver.Value) error {
 	for _, b := range r.queryResult.Results.Bindings {
 		for i, k := range r.queryResult.Head.Vars {
-			dest[i] = b[k]
+			switch b[k].Type {
+			default:
+				dest[i] = b[k].Value
+			}
 		}
 		r.queryResult.Results.Bindings = r.queryResult.Results.Bindings[1:]
 		return nil

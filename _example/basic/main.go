@@ -33,7 +33,7 @@ func main() {
 
 	result, err = cli.Query(ctx, `select * where { $1 <http://ja.dbpedia.org/property/name> ?name . } LIMIT 10`, sparql.Param{
 		Ordinal: 1,
-		Value:   sparql.SparqlURL("http://ja.dbpedia.org/resource/ももいろクローバーZ"),
+		Value:   sparql.URI("http://ja.dbpedia.org/resource/ももいろクローバーZ"),
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -53,7 +53,7 @@ func main() {
 	result, err = cli.Query(ctx, `select * where { ?s <http://dbpedia.org/ontology/wikiPageLength> $2 . } LIMIT 1`, sparql.Param{
 		Ordinal:  2,
 		Value:    76516,
-		DataType: sparql.SparqlURL("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+		DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
 	})
 	if err != nil {
 		log.Fatal(err)

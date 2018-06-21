@@ -16,16 +16,16 @@ type Param struct {
 	// Value is the parameter value.
 	Value interface{}
 	// DataType is the parameter type.
-	DataType SparqlURL
+	DataType URI
 	// LanguageTag is the parameter language tag.
 	LanguageTag string
 }
 
-// SparqlURL is URL string.
-type SparqlURL string
+// URI is URI string.
+type URI string
 
-// String returns this URL string surrounded with `<` and `>`.
-func (s SparqlURL) String() string {
+// String returns this URI string surrounded with `<` and `>`.
+func (s URI) String() string {
 	return "<" + string(s) + ">"
 }
 
@@ -72,7 +72,7 @@ func (p Param) Serialize() string {
 		return `"""` + strings.Replace(v, `"""`, `\"\"\"`, -1) + `"""`
 	case time.Time:
 		return v.Format(dateTimeFormat)
-	case SparqlURL:
+	case URI:
 		return v.String()
 	default:
 		return `"""` + strings.Replace(fmt.Sprintf("%v", v), `"""`, `\"\"\"`, -1) + `"""`
