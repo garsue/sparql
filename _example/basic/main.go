@@ -49,4 +49,14 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("%+v\n", result)
+
+	result, err = cli.Query(ctx, `select * where { ?s <http://dbpedia.org/ontology/wikiPageLength> $2 . } LIMIT 1`, sparql.Param{
+		Ordinal:  2,
+		Value:    76516,
+		DataType: sparql.SparqlURL("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%+v\n", result)
 }

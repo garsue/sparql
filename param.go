@@ -16,7 +16,7 @@ type Param struct {
 	// Value is the parameter value.
 	Value interface{}
 	// DataType is the parameter type.
-	DataType string
+	DataType SparqlURL
 	// LanguageTag is the parameter language tag.
 	LanguageTag string
 }
