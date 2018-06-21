@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -22,7 +24,13 @@ type Client struct {
 
 // QueryResult is a destination to decoding a SPARQL query result json.
 type QueryResult struct {
+	Head    Head    `json:"head"`
 	Results Results `json:"results"`
+}
+
+// Head is a part of a SPARQL query result json.
+type Head struct {
+	Vars []string `json:"vars"`
 }
 
 // Results is a part of a SPARQL query result json.
@@ -125,7 +133,8 @@ func (c *Client) Query(ctx context.Context, query string, args ...Param) (*Query
 	}
 
 	var result QueryResult
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	body := io.TeeReader(resp.Body, os.Stdout)
+	if err := json.NewDecoder(body).Decode(&result); err != nil {
 		return nil, err
 	}
 	return &result, nil
