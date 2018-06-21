@@ -18,6 +18,7 @@ type Client struct {
 	Endpoint   string
 	dialer     net.Dialer
 	transport  http.Transport
+	prefixes   map[string]URI
 }
 
 // Option sets an option to the SPARQL client.
@@ -49,6 +50,14 @@ func IdleConnTimeout(timeout time.Duration) Option {
 	}
 }
 
+// Prefix sets a global PREFIX for all queries.
+func Prefix(prefix string, uri URI) Option {
+	return func(c *Client) error {
+		c.prefixes[prefix] = uri
+		return nil
+	}
+}
+
 // New returns `sparql.Client`.
 func New(endpoint string, opts ...Option) (*Client, error) {
 	dialer := net.Dialer{
@@ -73,6 +82,7 @@ func New(endpoint string, opts ...Option) (*Client, error) {
 		},
 		Logger:   *logger.New(),
 		Endpoint: endpoint,
+		prefixes: make(map[string]URI),
 	}
 	for _, opt := range opts {
 		if err := opt(client); err != nil {

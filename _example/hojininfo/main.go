@@ -4,22 +4,28 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"time"
 
-	sparql "github.com/garsue/go-sparql/sql"
+	"github.com/garsue/go-sparql"
+	ssql "github.com/garsue/go-sparql/sql"
 )
 
 func main() {
-	db := sql.OpenDB(&sparql.Connector{
-		Name: "https://api.hojin-info.go.jp/sparql",
-	})
+	db := sql.OpenDB(ssql.NewConnector(
+		"https://api.hojin-info.go.jp/sparql",
+		sparql.Timeout(5*time.Second),
+		sparql.MaxIdleConns(0),
+		sparql.IdleConnTimeout(0),
+		sparql.Prefix("hj", "http://hojin-info.go.jp/ns/domain/biz/1#"),
+		sparql.Prefix("ic", "http://imi.go.jp/ns/core/rdf#"),
+	))
 
 	ctx := context.Background()
 	if err := db.PingContext(ctx); err != nil {
 		log.Fatal(err)
 	}
 
-	rows, err := db.QueryContext(ctx, `PREFIX hj: <http://hojin-info.go.jp/ns/domain/biz/1#>
-PREFIX ic: <http://imi.go.jp/ns/core/rdf#>
+	rows, err := db.QueryContext(ctx, `
 SELECT DISTINCT ?cID (SAMPLE(?name) AS ?name) (SUM(?value) AS ?sum)
 FROM <http://hojin-info.go.jp/graph/chotatsu>
 WHERE {
