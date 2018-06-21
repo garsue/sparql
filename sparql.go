@@ -2,12 +2,10 @@ package sparql
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/garsue/go-sparql/logger"
@@ -18,52 +16,70 @@ type Client struct {
 	HttpClient http.Client
 	Logger     logger.Logger
 	Endpoint   string
+	dialer     net.Dialer
+	transport  http.Transport
 }
 
-// QueryResult is a destination to decoding a SPARQL query result json.
-type QueryResult struct {
-	Head    Head    `json:"head"`
-	Results Results `json:"results"`
+// Option sets an option to the SPARQL client.
+type Option func(*Client) error
+
+// Timeout sets the connection timeout duration. Also KeepAlive timeout.
+func Timeout(timeout time.Duration) Option {
+	return func(c *Client) error {
+		c.dialer.Timeout = timeout
+		c.dialer.KeepAlive = timeout
+		return nil
+	}
 }
 
-// Head is a part of a SPARQL query result json.
-type Head struct {
-	Vars []string `json:"vars"`
+// MaxIdleConns sets max idle connections.
+func MaxIdleConns(n int) Option {
+	return func(c *Client) error {
+		c.transport.MaxIdleConns = n
+		return nil
+	}
 }
 
-// Results is a part of a SPARQL query result json.
-type Results struct {
-	Bindings []Binding `json:"bindings"`
-}
-
-// Binding is a part of a SPARQL query result json.
-type Binding map[string]struct {
-	Type  string      `json:"type"`
-	Value interface{} `json:"value"`
+// IdleConnTimeout sets the maximum amount of time an idle
+// (keep-alive) connection.
+func IdleConnTimeout(timeout time.Duration) Option {
+	return func(c *Client) error {
+		c.transport.IdleConnTimeout = timeout
+		return nil
+	}
 }
 
 // New returns `sparql.Client`.
-func New(endpoint string, maxIdleConns int, idleConnTimeout, timeout time.Duration) *Client {
-	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   timeout,
-			KeepAlive: timeout,
-			DualStack: true,
-		}).DialContext,
-		MaxIdleConns:          maxIdleConns,
-		MaxIdleConnsPerHost:   maxIdleConns,
-		IdleConnTimeout:       idleConnTimeout,
+func New(endpoint string, opts ...Option) (*Client, error) {
+	dialer := net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}
+	transport := http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           dialer.DialContext,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   100,
+		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
-	return &Client{
+	client := &Client{
+		dialer:    dialer,
+		transport: transport,
 		HttpClient: http.Client{
-			Transport: transport,
+			Transport: &transport,
 		},
 		Logger:   *logger.New(),
 		Endpoint: endpoint,
 	}
+	for _, opt := range opts {
+		if err := opt(client); err != nil {
+			return nil, err
+		}
+	}
+	return client, nil
 }
 
 // Close closes this client
@@ -98,43 +114,4 @@ func (c *Client) Ping(ctx context.Context) error {
 		return fmt.Errorf("SPARQL ping error. status code %d", resp.StatusCode)
 	}
 	return nil
-}
-
-// Query queries to the endpoint.
-func (c *Client) Query(ctx context.Context, query string, args ...Param) (*QueryResult, error) {
-	request, err := http.NewRequest(http.MethodGet, c.Endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	replacePairs := make([]string, 0, 2*len(args))
-	for _, arg := range args {
-		replacePairs = append(replacePairs, fmt.Sprintf("$%d", arg.Ordinal), arg.Serialize())
-	}
-
-	url := request.URL.Query()
-	built := strings.NewReplacer(replacePairs...).Replace(query)
-	c.Logger.Debug.Println(built)
-	url.Set("query", built)
-	url.Set("format", "application/sparql-results+json")
-	request.URL.RawQuery = url.Encode()
-
-	resp, err := c.HttpClient.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer c.Logger.LogCloseError(resp.Body)
-	c.Logger.Debug.Printf("%+v\n", resp)
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("SPARQL query error. status code %d", resp.StatusCode)
-	}
-
-	var result QueryResult
-	//body := io.TeeReader(resp.Body, os.Stdout)
-	body := resp.Body
-	if err := json.NewDecoder(body).Decode(&result); err != nil {
-		return nil, err
-	}
-	return &result, nil
 }

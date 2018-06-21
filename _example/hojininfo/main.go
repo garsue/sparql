@@ -5,14 +5,13 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/garsue/go-sparql/sql"
+	sparql "github.com/garsue/go-sparql/sql"
 )
 
 func main() {
-	db, err := sql.Open("sparql", "https://api.hojin-info.go.jp/sparql")
-	if err != nil {
-		log.Fatal(err)
-	}
+	db := sql.OpenDB(&sparql.Connector{
+		Name: "https://api.hojin-info.go.jp/sparql",
+	})
 
 	ctx := context.Background()
 	if err := db.PingContext(ctx); err != nil {

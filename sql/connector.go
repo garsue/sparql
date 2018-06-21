@@ -16,14 +16,19 @@ type Connector struct {
 
 // Connect returns `driver.Conn` with a context.
 func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
-	conn := Conn{
-		Client: sparql.New(c.Name, 100, 90*time.Second, 30*time.Second),
-	}
-	// Ping to get a keep-alive connection
-	if err := conn.Client.Ping(ctx); err != nil {
+	client, err := sparql.New(
+		c.Name,
+		sparql.MaxIdleConns(100),
+		sparql.IdleConnTimeout(90*time.Second),
+		sparql.Timeout(30*time.Second),
+	)
+	if err != nil {
 		return nil, err
 	}
-	return &conn, nil
+
+	return &Conn{
+		Client: client,
+	}, nil
 }
 
 // Driver returns underlying `driver.Driver`.
