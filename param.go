@@ -21,6 +21,14 @@ type Param struct {
 	LanguageTag string
 }
 
+// SparqlURL is URL string.
+type SparqlURL string
+
+// String returns this URL string surrounded with `<` and `>`.
+func (s SparqlURL) String() string {
+	return "<" + string(s) + ">"
+}
+
 func (p Param) Serialize() string {
 	if p.LanguageTag != "" {
 		s := strings.Replace(fmt.Sprintf("%v", p.Value), `"""`, `\"\"\"`, -1)
@@ -32,7 +40,6 @@ func (p Param) Serialize() string {
 	}
 
 	switch v := p.Value.(type) {
-	// TODO deal all built-in types
 	case int:
 		return strconv.Itoa(v)
 	case int8:
@@ -65,6 +72,8 @@ func (p Param) Serialize() string {
 		return `"""` + strings.Replace(v, `"""`, `\"\"\"`, -1) + `"""`
 	case time.Time:
 		return v.Format(dateTimeFormat)
+	case SparqlURL:
+		return v.String()
 	default:
 		return `"""` + strings.Replace(fmt.Sprintf("%v", v), `"""`, `\"\"\"`, -1) + `"""`
 	}

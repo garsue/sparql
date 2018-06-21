@@ -14,7 +14,15 @@ type Conn struct {
 
 // Query queries to a SPARQL source.
 func (c *Conn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
-	_, err := c.Client.Query(ctx, query, args)
+	params := make([]sparql.Param, 0, len(args))
+	for _, a := range args {
+		params = append(params, sparql.Param{
+			Ordinal: a.Ordinal,
+			Value:   a.Value.(interface{}),
+		})
+	}
+
+	_, err := c.Client.Query(ctx, query, params...)
 	return nil, err
 }
 
@@ -29,8 +37,8 @@ func (c *Conn) Prepare(query string) (driver.Stmt, error) {
 }
 
 // Close closes this connection but nothing to do.
-func (*Conn) Close() error {
-	return nil
+func (c *Conn) Close() error {
+	return c.Client.Close()
 }
 
 // Begin is not supported. SPARQL does not have transactions.
