@@ -53,7 +53,7 @@ func (c *Client) Query(ctx context.Context, query string, args ...Param) (*Query
 		if _, err := b.WriteString(": "); err != nil {
 			return nil, err
 		}
-		if _, err := b.WriteString(uri.String()); err != nil {
+		if _, err := b.WriteString(uri.Serialize()); err != nil {
 			return nil, err
 		}
 		if _, err := b.WriteString("\n"); err != nil {
@@ -66,7 +66,9 @@ func (c *Client) Query(ctx context.Context, query string, args ...Param) (*Query
 	for _, arg := range args {
 		replacePairs = append(replacePairs, fmt.Sprintf("$%d", arg.Ordinal), arg.Serialize())
 	}
-	b.WriteString(strings.NewReplacer(replacePairs...).Replace(query))
+	if _, err := b.WriteString(strings.NewReplacer(replacePairs...).Replace(query)); err != nil {
+		return nil, err
+	}
 
 	// Build the query
 	built := b.String()
