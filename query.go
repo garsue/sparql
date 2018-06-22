@@ -14,6 +14,7 @@ import (
 type QueryResult struct {
 	Head    Head    `json:"head"`
 	Results Results `json:"results"`
+	Boolean bool    `json:"boolean"`
 }
 
 // Head is a part of a SPARQL query result json.

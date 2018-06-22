@@ -109,4 +109,11 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("%+v\n", result)
+
+	// Ask
+	result, err = cli.Query(ctx, `ask { dbpj:有安杏果 dbp-owl:birthYear "1995"^^xsd:gYear . }`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%+v\n", result)
 }
