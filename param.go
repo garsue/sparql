@@ -16,17 +16,33 @@ type Param struct {
 	// Value is the parameter value.
 	Value interface{}
 	// DataType is the parameter type.
-	DataType URI
+	DataType Serializable
 	// LanguageTag is the parameter language tag.
 	LanguageTag string
+}
+
+// Serializable is a serializer to replace parameters in a query.
+type Serializable interface {
+	Serialize() string
 }
 
 // URI is URI string.
 type URI string
 
-// String returns this URI string surrounded with `<` and `>`.
-func (s URI) String() string {
+// Serialize returns this URI string surrounded with `<` and `>`.
+func (s URI) Serialize() string {
 	return "<" + string(s) + ">"
+}
+
+// DataType
+type DataType struct {
+	Prefix string
+	Name   string
+}
+
+// Serialize returns the string formatted as "{prefix}:{name}".
+func (d DataType) Serialize() string {
+	return d.Prefix + ":" + d.Name
 }
 
 func (p Param) Serialize() string {
@@ -34,9 +50,9 @@ func (p Param) Serialize() string {
 		s := strings.Replace(fmt.Sprintf("%v", p.Value), `"""`, `\"\"\"`, -1)
 		return fmt.Sprintf(`"""%v"""@%s`, s, p.LanguageTag)
 	}
-	if p.DataType != "" {
+	if p.DataType != nil {
 		s := strings.Replace(fmt.Sprintf("%v", p.Value), `"""`, `\"\"\"`, -1)
-		return fmt.Sprintf(`"""%v"""^^%s`, s, p.DataType)
+		return fmt.Sprintf(`"""%v"""^^%s`, s, p.DataType.Serialize())
 	}
 
 	switch v := p.Value.(type) {
@@ -72,8 +88,8 @@ func (p Param) Serialize() string {
 		return `"""` + strings.Replace(v, `"""`, `\"\"\"`, -1) + `"""`
 	case time.Time:
 		return v.Format(dateTimeFormat)
-	case URI:
-		return v.String()
+	case Serializable:
+		return v.Serialize()
 	default:
 		return `"""` + strings.Replace(fmt.Sprintf("%v", v), `"""`, `\"\"\"`, -1) + `"""`
 	}

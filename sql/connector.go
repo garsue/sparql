@@ -3,27 +3,35 @@ package sql
 import (
 	"context"
 	"database/sql/driver"
-	"time"
 
 	"github.com/garsue/go-sparql"
 )
 
 // Connector generates `driver.Conn` with a context.
 type Connector struct {
-	driver driver.Driver
-	Name   string
+	driver  driver.Driver
+	Name    string
+	options []sparql.Option
+}
+
+// NewConnector returns `driver.Connector`.
+func NewConnector(name string, opts ...sparql.Option) *Connector {
+	return &Connector{
+		Name:    name,
+		options: opts,
+	}
 }
 
 // Connect returns `driver.Conn` with a context.
 func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
-	conn := Conn{
-		Client: sparql.New(c.Name, 100, 90*time.Second, 30*time.Second),
-	}
-	// Ping to get a keep-alive connection
-	if err := conn.Client.Ping(ctx); err != nil {
+	client, err := sparql.New(c.Name, c.options...)
+	if err != nil {
 		return nil, err
 	}
-	return &conn, nil
+
+	return &Conn{
+		Client: client,
+	}, nil
 }
 
 // Driver returns underlying `driver.Driver`.
