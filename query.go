@@ -29,8 +29,9 @@ type Results struct {
 
 // Binding is a part of a SPARQL query result json.
 type Binding map[string]struct {
-	Type  string      `json:"type"`
-	Value interface{} `json:"value"`
+	Type     string      `json:"type"`
+	DataType string      `json:"datatype"`
+	Value    interface{} `json:"value"`
 }
 
 // Query queries to the endpoint.

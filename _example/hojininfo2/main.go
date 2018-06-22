@@ -27,11 +27,11 @@ func main() {
 
 	var s, n, v interface{}
 	if err := db.QueryRowContext(ctx, `
-	SELECT ?s, ?n, ?v FROM <http://hojin-info.go.jp/graph/hojin>
+	ASK FROM <http://hojin-info.go.jp/graph/hyosho>
 	WHERE {
 	?n ic:名称/ic:表記 ?v .
 	FILTER regex(?v, "マネー")
-	} LIMIT 1`).Scan(&s, &n, &v); err != nil {
+	}`).Scan(&s, &n, &v); err != nil {
 		log.Fatal(err)
 	}
 	log.Println(s)

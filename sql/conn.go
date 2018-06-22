@@ -16,6 +16,7 @@ type Conn struct {
 // Rows implements `driver.Rows` with `sparql.QueryResult`.
 type Rows struct {
 	queryResult *sparql.QueryResult
+	processed   int
 }
 
 // Columns returns the names of the columns.
@@ -32,14 +33,23 @@ func (r *Rows) Close() error {
 // Next is called to populate the next row of data into
 // the provided slice.
 func (r *Rows) Next(dest []driver.Value) error {
-	for _, b := range r.queryResult.Results.Bindings {
+	defer func() { r.processed++ }()
+
+	// ASK query
+	if r.processed == 0 && len(r.queryResult.Head.Vars) == 0 {
+		for i := range dest {
+			dest[i] = r.queryResult.Boolean
+			return nil
+		}
+	}
+
+	for _, b := range r.queryResult.Results.Bindings[r.processed:] {
 		for i, k := range r.queryResult.Head.Vars {
 			switch b[k].Type {
 			default:
 				dest[i] = b[k].Value
 			}
 		}
-		r.queryResult.Results.Bindings = r.queryResult.Results.Bindings[1:]
 		return nil
 	}
 	return io.EOF
