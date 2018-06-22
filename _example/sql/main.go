@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	rows, err := db.QueryContext(ctx, `select distinct * where { <http://ja.dbpedia.org/resource/東京都> ?p ?o .  } LIMIT 100`)
+	rows, err := db.QueryContext(ctx, `select distinct * where { <http://ja.dbpedia.org/resource/東京都> ?p ?o .  } LIMIT 1`)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,12 +30,21 @@ func main() {
 		if err := rows.Scan(&p, &o); err != nil {
 			log.Fatal(err)
 		}
-		log.Println(p, o)
+		log.Printf("%T %v %T %v", p, p, o, o)
 	}
 
 	if err := rows.Close(); err != nil {
 		log.Fatal(err)
 	}
+
+	var o int
+	if err := db.QueryRowContext(
+		ctx,
+		`select distinct * where { <http://ja.dbpedia.org/resource/東京都> <http://dbpedia.org/ontology/wikiPageID> ?o .  } LIMIT 1`,
+	).Scan(&o); err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%T %v", o, o)
 
 	if err := db.Close(); err != nil {
 		log.Fatal(err)
