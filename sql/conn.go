@@ -16,12 +16,16 @@ type Conn struct {
 // Rows implements `driver.Rows` with `sparql.QueryResult`.
 type Rows struct {
 	queryResult *sparql.QueryResult
-	processed   int
+	processed   int64
 }
 
 // Columns returns the names of the columns.
 func (r *Rows) Columns() []string {
-	return r.queryResult.Head.Vars
+	if len(r.queryResult.Head.Vars) != 0 {
+		return r.queryResult.Head.Vars
+	}
+	// ASK query
+	return []string{"boolean"}
 }
 
 // Close closes the rows iterator.
