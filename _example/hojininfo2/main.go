@@ -25,16 +25,28 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var b bool
-	if err := db.QueryRowContext(ctx, `
-	ASK FROM <http://hojin-info.go.jp/graph/hyosho>
-	WHERE {
-	?n ic:名称/ic:表記 ?v .
-	FILTER regex(?v, "マネー")
-	}`).Scan(&b); err != nil {
+	// MF
+	rows, err := db.QueryContext(ctx, `
+		SELECT ?v FROM <http://hojin-info.go.jp/graph/hojin>
+		WHERE {
+		?n ic:名称/ic:表記 ?v .
+		FILTER regex(?v, "マネー")
+		} LIMIT 100`)
+	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(b)
+
+	for rows.Next() {
+		var v string
+		if err := rows.Scan(&v); err != nil {
+			log.Fatal(err)
+		}
+		log.Println(v)
+	}
+
+	if err := rows.Close(); err != nil {
+		log.Fatal(err)
+	}
 
 	if err := db.Close(); err != nil {
 		log.Fatal(err)
