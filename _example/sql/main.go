@@ -26,7 +26,7 @@ func main() {
 	}
 
 	for rows.Next() {
-		var p, o sparql.URI
+		var p, o sparql.IRI
 		if err := rows.Scan(&p, &o); err != nil {
 			log.Fatal(err)
 		}

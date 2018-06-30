@@ -30,7 +30,7 @@ type Results struct {
 // Binding is a part of a SPARQL query result json.
 type Binding map[string]struct {
 	Type     string      `json:"type"`
-	DataType string      `json:"datatype"`
+	DataType IRI         `json:"datatype"`
 	Value    interface{} `json:"value"`
 }
 
@@ -45,7 +45,7 @@ func (c *Client) Query(ctx context.Context, query string, args ...Param) (*Query
 	b := bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
 
 	// Prepend PREFIX
-	for prefix, uri := range c.prefixes {
+	for prefix, iri := range c.prefixes {
 		if _, err := b.WriteString("PREFIX "); err != nil {
 			return nil, err
 		}
@@ -55,7 +55,7 @@ func (c *Client) Query(ctx context.Context, query string, args ...Param) (*Query
 		if _, err := b.WriteString(": "); err != nil {
 			return nil, err
 		}
-		if _, err := b.WriteString(uri.Serialize()); err != nil {
+		if _, err := b.WriteString(iri.Ref()); err != nil {
 			return nil, err
 		}
 		if _, err := b.WriteString("\n"); err != nil {

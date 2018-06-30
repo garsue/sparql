@@ -42,10 +42,10 @@ func main() {
 	}
 	log.Printf("%+v\n", result)
 
-	// URI parameter
+	// IRI parameter
 	result, err = cli.Query(ctx, `select * where { $1 <http://ja.dbpedia.org/property/name> ?name . } LIMIT 10`, sparql.Param{
 		Ordinal: 1,
-		Value:   sparql.URI("http://ja.dbpedia.org/resource/ももいろクローバーZ"),
+		Value:   sparql.IRI("http://ja.dbpedia.org/resource/ももいろクローバーZ"),
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -63,25 +63,22 @@ func main() {
 	}
 	log.Printf("%+v\n", result)
 
-	// Typed literal with URI
+	// Typed literal with IRI
 	result, err = cli.Query(ctx, `select * where { ?s <http://dbpedia.org/ontology/wikiPageLength> $1 . } LIMIT 1`, sparql.Param{
 		Ordinal:  1,
 		Value:    76516,
-		DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+		DataType: sparql.IRI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("%+v\n", result)
 
-	// Typed literal with DataType
+	// Typed literal with PrefixedName
 	result, err = cli.Query(ctx, `select * where { ?s <http://dbpedia.org/ontology/birthYear> $1 . } LIMIT 1`, sparql.Param{
-		Ordinal: 1,
-		Value:   1995,
-		DataType: sparql.DataType{
-			Prefix: "xsd",
-			Name:   "gYear",
-		},
+		Ordinal:  1,
+		Value:    1995,
+		DataType: sparql.PrefixedName("xsd:gYear"),
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -92,17 +89,11 @@ func main() {
 	result, err = cli.Query(ctx, `select * where { $1 $2 ?o . } LIMIT 1000`,
 		sparql.Param{
 			Ordinal: 1,
-			Value: sparql.DataType{
-				Prefix: "dbpj",
-				Name:   "有安杏果",
-			},
+			Value:   sparql.PrefixedName("dbpj:有安杏果"),
 		},
 		sparql.Param{
 			Ordinal: 2,
-			Value: sparql.DataType{
-				Prefix: "dbp-owl",
-				Name:   "birthYear",
-			},
+			Value:   sparql.PrefixedName("dbp-owl:birthYear"),
 		},
 	)
 	if err != nil {
