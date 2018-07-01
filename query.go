@@ -31,7 +31,7 @@ type Results struct {
 type Binding map[string]struct {
 	Type     Type        `json:"type"`
 	DataType IRI         `json:"datatype"`
-	XmlLang  string      `json:"xml:lang"`
+	XMLLang  string      `json:"xml:lang"`
 	Value    interface{} `json:"value"`
 }
 
@@ -92,7 +92,7 @@ func (c *Client) Query(ctx context.Context, query string, params ...Param) (*Que
 	url.Set("format", "application/sparql-results+json")
 	request.URL.RawQuery = url.Encode()
 
-	resp, err := c.HttpClient.Do(request)
+	resp, err := c.HTTPClient.Do(request)
 	if err != nil {
 		return nil, err
 	}

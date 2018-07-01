@@ -1,0 +1,17 @@
+lint:
+  image: golang:latest
+  cache:
+    paths:
+    - bin
+  script:
+  - test -d bin && mv bin $GOPATH
+  - ln -s /builds /go/src/github.com
+  - cd /go/src/github.com/${CI_PROJECT_PATH}
+  - gofmt -d -s -l .
+  - go get -u golang.org/x/lint/golint
+  - golint -set_exit_status
+  - go get -u golang.org/x/tools/cmd/goimports
+  - goimports -d .
+  - mv $GOPATH/bin .
+
+
