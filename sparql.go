@@ -13,7 +13,7 @@ import (
 
 // Client queries to its SPARQL endpoint.
 type Client struct {
-	HttpClient http.Client
+	HTTPClient http.Client
 	Logger     logger.Logger
 	Endpoint   string
 	dialer     net.Dialer
@@ -77,7 +77,7 @@ func New(endpoint string, opts ...Option) (*Client, error) {
 	client := &Client{
 		dialer:    dialer,
 		transport: transport,
-		HttpClient: http.Client{
+		HTTPClient: http.Client{
 			Transport: &transport,
 		},
 		Logger:   *logger.New(),
@@ -94,15 +94,15 @@ func New(endpoint string, opts ...Option) (*Client, error) {
 
 // Close closes this client
 func (c *Client) Close() error {
-	if c.HttpClient.Transport == nil {
+	if c.HTTPClient.Transport == nil {
 		return errors.New("already closed")
 	}
-	transport, ok := c.HttpClient.Transport.(*http.Transport)
+	transport, ok := c.HTTPClient.Transport.(*http.Transport)
 	if !ok {
-		return fmt.Errorf("unknown RoundTripper, %+v", c.HttpClient.Transport)
+		return fmt.Errorf("unknown RoundTripper, %+v", c.HTTPClient.Transport)
 	}
 	transport.CloseIdleConnections()
-	c.HttpClient.Transport = nil
+	c.HTTPClient.Transport = nil
 	return nil
 }
 
@@ -113,7 +113,7 @@ func (c *Client) Ping(ctx context.Context) error {
 		return err
 	}
 
-	resp, err := c.HttpClient.Do(request.WithContext(ctx))
+	resp, err := c.HTTPClient.Do(request.WithContext(ctx))
 	if err != nil {
 		return err
 	}

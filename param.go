@@ -17,6 +17,7 @@ type Param struct {
 	Value interface{}
 }
 
+// Serializable serialize data to embed to queries.
 type Serializable interface {
 	Serialize() string
 }
@@ -41,6 +42,7 @@ func (l Literal) Serialize() string {
 	return strings.Join([]string{`"""`, s, `"""`}, "")
 }
 
+// Serialize returns the serialized as query parameter.
 func (p Param) Serialize() string {
 	switch v := p.Value.(type) {
 	case int:
