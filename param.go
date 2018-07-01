@@ -15,22 +15,33 @@ type Param struct {
 	Ordinal int
 	// Value is the parameter value.
 	Value interface{}
-	// DataType is the parameter type.
-	DataType IRIRef
-	// LanguageTag is the parameter language tag.
+}
+
+type Serializable interface {
+	Serialize() string
+}
+
+// Literal http://www.w3.org/TR/2004/REC-rdf-concepts-20040210/#dfn-literal
+type Literal struct {
+	Value       interface{}
+	DataType    IRIRef
 	LanguageTag string
 }
 
-func (p Param) Serialize() string {
-	if p.LanguageTag != "" {
-		s := strings.Replace(fmt.Sprintf("%v", p.Value), `"""`, `\"\"\"`, -1)
-		return fmt.Sprintf(`"""%v"""@%s`, s, p.LanguageTag)
+// Serialize returns the serialized literal string.
+func (l Literal) Serialize() string {
+	s := fmt.Sprint(l.Value)
+	s = strings.Replace(s, `"""`, `\"\"\"`, -1)
+	if l.LanguageTag != "" {
+		return strings.Join([]string{`"""`, s, `"""@`, l.LanguageTag}, "")
 	}
-	if p.DataType != nil {
-		s := strings.Replace(fmt.Sprintf("%v", p.Value), `"""`, `\"\"\"`, -1)
-		return fmt.Sprintf(`"""%v"""^^%s`, s, p.DataType.Ref())
+	if l.DataType != nil {
+		return strings.Join([]string{`"""`, s, `"""^^`, l.DataType.Ref()}, "")
 	}
+	return strings.Join([]string{`"""`, s, `"""`}, "")
+}
 
+func (p Param) Serialize() string {
 	switch v := p.Value.(type) {
 	case int:
 		return strconv.Itoa(v)
@@ -59,14 +70,20 @@ func (p Param) Serialize() string {
 	case bool:
 		return strconv.FormatBool(v)
 	case []byte:
-		return `"""` + strings.Replace(string(v), `"""`, `\"\"\"`, -1) + `"""`
+		s := strings.Replace(string(v), `"""`, `\"\"\"`, -1)
+		return strings.Join([]string{`"""`, s, `"""`}, "")
 	case string:
-		return `"""` + strings.Replace(v, `"""`, `\"\"\"`, -1) + `"""`
+		s := strings.Replace(v, `"""`, `\"\"\"`, -1)
+		return strings.Join([]string{`"""`, s, `"""`}, "")
 	case time.Time:
 		return v.Format(dateTimeFormat)
 	case IRIRef:
 		return v.Ref()
+	case Serializable:
+		return v.Serialize()
 	default:
-		return `"""` + strings.Replace(fmt.Sprintf("%v", v), `"""`, `\"\"\"`, -1) + `"""`
+		s := fmt.Sprint(v)
+		s = strings.Replace(s, `"""`, `\"\"\"`, -1)
+		return strings.Join([]string{`"""`, s, `"""`}, "")
 	}
 }

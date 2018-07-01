@@ -54,9 +54,11 @@ func main() {
 
 	// With language tags
 	result, err = cli.Query(ctx, `select * where { ?s <http://ja.dbpedia.org/property/name> $1 . } LIMIT 10`, sparql.Param{
-		Ordinal:     1,
-		Value:       "ももいろクローバー",
-		LanguageTag: "ja",
+		Ordinal: 1,
+		Value: sparql.Literal{
+			Value:       "ももいろクローバー",
+			LanguageTag: "ja",
+		},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -65,9 +67,11 @@ func main() {
 
 	// Typed literal with IRI
 	result, err = cli.Query(ctx, `select * where { ?s <http://dbpedia.org/ontology/wikiPageLength> $1 . } LIMIT 1`, sparql.Param{
-		Ordinal:  1,
-		Value:    76516,
-		DataType: sparql.IRI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+		Ordinal: 1,
+		Value: sparql.Literal{
+			Value:    76516,
+			DataType: sparql.IRI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+		},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -76,9 +80,11 @@ func main() {
 
 	// Typed literal with PrefixedName
 	result, err = cli.Query(ctx, `select * where { ?s <http://dbpedia.org/ontology/birthYear> $1 . } LIMIT 1`, sparql.Param{
-		Ordinal:  1,
-		Value:    1995,
-		DataType: sparql.PrefixedName("xsd:gYear"),
+		Ordinal: 1,
+		Value: sparql.Literal{
+			Value:    "1995",
+			DataType: sparql.PrefixedName("xsd:gYear"),
+		},
 	})
 	if err != nil {
 		log.Fatal(err)

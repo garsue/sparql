@@ -29,13 +29,25 @@ type Results struct {
 
 // Binding is a part of a SPARQL query result json.
 type Binding map[string]struct {
-	Type     string      `json:"type"`
+	Type     Type        `json:"type"`
 	DataType IRI         `json:"datatype"`
+	XmlLang  string      `json:"xml:lang"`
 	Value    interface{} `json:"value"`
 }
 
+// Type is the binding value type.
+type Type string
+
+// Types https://www.w3.org/TR/rdf-sparql-json-res/#variable-binding-results
+const (
+	TypeIRI          Type = "uri"
+	TypeLiteral      Type = "literal"
+	TypeTypedLiteral Type = "typed-literal"
+	TypeBlankNode    Type = "bnode"
+)
+
 // Query queries to the endpoint.
-func (c *Client) Query(ctx context.Context, query string, args ...Param) (*QueryResult, error) {
+func (c *Client) Query(ctx context.Context, query string, params ...Param) (*QueryResult, error) {
 	request, err := http.NewRequest(http.MethodGet, c.Endpoint, nil)
 	if err != nil {
 		return nil, err
@@ -64,8 +76,8 @@ func (c *Client) Query(ctx context.Context, query string, args ...Param) (*Query
 	}
 
 	// Replace parameters
-	replacePairs := make([]string, 0, 2*len(args))
-	for _, arg := range args {
+	replacePairs := make([]string, 0, 2*len(params))
+	for _, arg := range params {
 		replacePairs = append(replacePairs, fmt.Sprintf("$%d", arg.Ordinal), arg.Serialize())
 	}
 	if _, err := b.WriteString(strings.NewReplacer(replacePairs...).Replace(query)); err != nil {

@@ -39,7 +39,7 @@ func (r *Rows) Close() error {
 func (r *Rows) Next(dest []driver.Value) error {
 	defer func() { r.processed++ }()
 
-	// ASK query
+	// See Boolean field if the query is ASK (not SELECT)
 	if r.processed == 0 && len(r.queryResult.Head.Vars) == 0 {
 		for i := range dest {
 			dest[i] = r.queryResult.Boolean
