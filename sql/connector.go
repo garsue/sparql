@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 
-	"github.com/garsue/go-sparql"
+	"github.com/garsue/sparql"
 )
 
 // Connector generates `driver.Conn` with a context.
