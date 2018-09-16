@@ -2,4 +2,4 @@
 
 package logger
 
-var env = None
+const env = None

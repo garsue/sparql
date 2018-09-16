@@ -2,4 +2,4 @@
 
 package logger
 
-var env = Error
+const env = Error

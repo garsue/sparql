@@ -47,11 +47,55 @@ const (
 )
 
 // Query queries to the endpoint.
-func (c *Client) Query(ctx context.Context, query string, params ...Param) (*QueryResult, error) {
+func (c *Client) Query(
+	ctx context.Context,
+	query string,
+	params ...Param,
+) (*QueryResult, error) {
+	request, err := c.request(ctx, query, params...)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.HTTPClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer c.Logger.LogCloseError(resp.Body)
+	c.Logger.Debug.Printf("%+v\n", resp)
+
+	if resp.StatusCode != http.StatusOK {
+		scanner := bufio.NewScanner(resp.Body)
+		var errMsg string
+		if scanner.Scan() {
+			errMsg = scanner.Text()
+		}
+		return nil, fmt.Errorf(
+			"SPARQL query error. status code: %d msg: %s",
+			resp.StatusCode,
+			errMsg,
+		)
+	}
+
+	var result QueryResult
+	//body := io.TeeReader(resp.Body, os.Stdout)
+	body := resp.Body
+	if err := json.NewDecoder(body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) request(
+	ctx context.Context,
+	query string,
+	params ...Param,
+) (*http.Request, error) {
 	request, err := http.NewRequest(http.MethodGet, c.Endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
+	request = request.WithContext(ctx)
 
 	const defaultBufferSize = 1024
 	b := bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
@@ -78,10 +122,16 @@ func (c *Client) Query(ctx context.Context, query string, params ...Param) (*Que
 	// Replace parameters
 	replacePairs := make([]string, 0, 2*len(params))
 	for _, arg := range params {
-		replacePairs = append(replacePairs, fmt.Sprintf("$%d", arg.Ordinal), arg.Serialize())
+		replacePairs = append(
+			replacePairs,
+			fmt.Sprintf("$%d", arg.Ordinal),
+			arg.Serialize(),
+		)
 	}
-	if _, err := b.WriteString(strings.NewReplacer(replacePairs...).Replace(query)); err != nil {
-		return nil, err
+	if _, err2 := b.WriteString(strings.
+		NewReplacer(replacePairs...).
+		Replace(query)); err2 != nil {
+		return nil, err2
 	}
 
 	// Build the query
@@ -91,28 +141,5 @@ func (c *Client) Query(ctx context.Context, query string, params ...Param) (*Que
 	url.Set("query", built)
 	url.Set("format", "application/sparql-results+json")
 	request.URL.RawQuery = url.Encode()
-
-	resp, err := c.HTTPClient.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer c.Logger.LogCloseError(resp.Body)
-	c.Logger.Debug.Printf("%+v\n", resp)
-
-	if resp.StatusCode != http.StatusOK {
-		scanner := bufio.NewScanner(resp.Body)
-		var errMsg string
-		if scanner.Scan() {
-			errMsg = scanner.Text()
-		}
-		return nil, fmt.Errorf("SPARQL query error. status code: %d msg: %s", resp.StatusCode, errMsg)
-	}
-
-	var result QueryResult
-	//body := io.TeeReader(resp.Body, os.Stdout)
-	body := resp.Body
-	if err := json.NewDecoder(body).Decode(&result); err != nil {
-		return nil, err
-	}
-	return &result, nil
+	return request, nil
 }

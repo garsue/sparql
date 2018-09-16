@@ -3,15 +3,15 @@ lint:
   cache:
     paths:
     - bin
+  variables:
+    PACKAGE_NAME: github.com/garsue/sparql
   script:
-  - test -d bin && mv bin $GOPATH
-  - ln -s /builds /go/src/github.com
-  - cd /go/src/github.com/${CI_PROJECT_PATH}
-  - gofmt -d -s -l .
-  - go get -u golang.org/x/lint/golint
-  - golint -set_exit_status
-  - go get -u golang.org/x/tools/cmd/goimports
-  - goimports -d .
-  - mv $GOPATH/bin .
+  - env
+  - test ! -e ./bin/gometalinter && curl -L https://git.io/vp6lP | sh
+  - PATH=$(pwd)/bin:$PATH
+  - mkdir -p /go/src/github.com/garsue
+  - ln -s $CI_PROJECT_DIR /go/src/${PACKAGE_NAME}
+  - cd /go/src/${PACKAGE_NAME}
+  - ./bin/gometalinter ./...
 
 
