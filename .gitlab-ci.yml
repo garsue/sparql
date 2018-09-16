@@ -1,3 +1,7 @@
+env:
+  script:
+  - env
+
 lint:
   image: golang:latest
   cache:
@@ -6,8 +10,7 @@ lint:
   variables:
     PACKAGE_NAME: github.com/garsue/sparql
   script:
-  - env
-  - test ! -e ./bin/gometalinter && curl -L https://git.io/vp6lP | sh
+  - test -e ./bin/gometalinter || curl -L https://git.io/vp6lP | sh
   - PATH=$(pwd)/bin:$PATH
   - mkdir -p /go/src/github.com/garsue
   - ln -s $CI_PROJECT_DIR /go/src/${PACKAGE_NAME}
