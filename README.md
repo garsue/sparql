@@ -1,3 +1,6 @@
+[![pipeline status](https://gitlab.com/garsue/sparql/badges/master/pipeline.svg)](https://gitlab.com/garsue/sparql/commits/master)
+[![coverage report](https://gitlab.com/garsue/sparql/badges/master/coverage.svg)](https://gitlab.com/garsue/sparql/commits/master)
+
 # Go SQL driver for SPARQL
 
 **SUPER EXPERIMENTAL**
