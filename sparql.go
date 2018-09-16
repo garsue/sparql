@@ -65,25 +65,22 @@ func New(endpoint string, opts ...Option) (*Client, error) {
 		KeepAlive: 30 * time.Second,
 		DualStack: true,
 	}
-	transport := http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
-		DialContext:           dialer.DialContext,
-		MaxIdleConns:          100,
-		MaxIdleConnsPerHost:   100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
 	client := &Client{
-		dialer:    dialer,
-		transport: transport,
-		HTTPClient: http.Client{
-			Transport: &transport,
+		dialer: dialer,
+		transport: http.Transport{
+			Proxy:                 http.ProxyFromEnvironment,
+			DialContext:           dialer.DialContext,
+			MaxIdleConns:          100,
+			MaxIdleConnsPerHost:   100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
 		},
 		Logger:   *logger.New(),
 		Endpoint: endpoint,
 		prefixes: make(map[string]IRI),
 	}
+	client.HTTPClient.Transport = &client.transport
 	for _, opt := range opts {
 		if err := opt(client); err != nil {
 			return nil, err

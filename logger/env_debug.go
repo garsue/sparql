@@ -2,4 +2,4 @@
 
 package logger
 
-var env = Debug
+const env = Debug

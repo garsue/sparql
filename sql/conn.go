@@ -47,20 +47,26 @@ func (r *Rows) Next(dest []driver.Value) error {
 		}
 	}
 
-	for _, b := range r.queryResult.Results.Bindings[r.processed:] {
-		for i, k := range r.queryResult.Head.Vars {
-			switch b[k].Type {
-			default:
-				dest[i] = b[k].Value
-			}
-		}
-		return nil
+	if r.processed >= int64(len(r.queryResult.Results.Bindings)) {
+		return io.EOF
 	}
-	return io.EOF
+
+	b := r.queryResult.Results.Bindings[r.processed]
+	for i, k := range r.queryResult.Head.Vars {
+		switch b[k].Type {
+		default:
+			dest[i] = b[k].Value
+		}
+	}
+	return nil
 }
 
-// Query queries to a SPARQL source.
-func (c *Conn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
+// QueryContext queries to a SPARQL source.
+func (c *Conn) QueryContext(
+	ctx context.Context,
+	query string,
+	args []driver.NamedValue,
+) (driver.Rows, error) {
 	params := make([]sparql.Param, 0, len(args))
 	for _, a := range args {
 		params = append(params, sparql.Param{

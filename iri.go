@@ -4,19 +4,6 @@ import (
 	"strings"
 )
 
-var iriReplacer = strings.NewReplacer(
-	"<", "%3C",
-	">", "%3E",
-	`"`, "%22",
-	" ", "%20",
-	"{", "%7B",
-	"}", "%7D",
-	"|", "%7C",
-	"\\", "%5C",
-	"^", "%5E",
-	"`", "%60",
-)
-
 // IRIRef https://www.w3.org/TR/rdf-sparql-query/#rIRIref
 type IRIRef interface {
 	Ref() string
@@ -27,7 +14,18 @@ type IRI string
 
 // Ref returns IRI_REF.
 func (i IRI) Ref() string {
-	return "<" + iriReplacer.Replace(string(i)) + ">"
+	return "<" + strings.NewReplacer(
+		"<", "%3C",
+		">", "%3E",
+		`"`, "%22",
+		" ", "%20",
+		"{", "%7B",
+		"}", "%7D",
+		"|", "%7C",
+		"\\", "%5C",
+		"^", "%5E",
+		"`", "%60",
+	).Replace(string(i)) + ">"
 }
 
 // PrefixedName https://www.w3.org/TR/rdf-sparql-query/#rPrefixedName

@@ -43,6 +43,7 @@ func (l Literal) Serialize() string {
 }
 
 // Serialize returns the serialized as query parameter.
+// nolint: gocyclo
 func (p Param) Serialize() string {
 	switch v := p.Value.(type) {
 	case int:
@@ -64,7 +65,7 @@ func (p Param) Serialize() string {
 	case uint32:
 		return strconv.FormatUint(uint64(v), 10)
 	case uint64:
-		return strconv.FormatUint(uint64(v), 10)
+		return strconv.FormatUint(v, 10)
 	case float32:
 		return strconv.FormatFloat(float64(v), 'e', -1, 32)
 	case float64:
