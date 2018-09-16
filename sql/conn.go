@@ -5,7 +5,7 @@ import (
 	"database/sql/driver"
 	"io"
 
-	"github.com/garsue/go-sparql"
+	"github.com/garsue/sparql"
 )
 
 // Conn connects to a SPARQL source.

@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/garsue/go-sparql"
-	ssql "github.com/garsue/go-sparql/sql"
+	"github.com/garsue/sparql"
+	ssql "github.com/garsue/sparql/sql"
 )
 
 func main() {

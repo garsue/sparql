@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/garsue/go-sparql/logger"
+	"github.com/garsue/sparql/logger"
 )
 
 // Client queries to its SPARQL endpoint.

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/garsue/go-sparql"
+	"github.com/garsue/sparql"
 )
 
 func main() {
