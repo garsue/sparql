@@ -1,9 +1,17 @@
+variables:
+  GO_VERSION: "1.11"
+
 env:
   script:
   - env
 
+build:
+  image: golang:${GO_VERSION}
+  script:
+  - go build
+
 lint:
-  image: golang:latest
+  image: golang:${GO_VERSION}
   cache:
     paths:
     - bin
