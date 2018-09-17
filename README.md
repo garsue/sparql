@@ -18,4 +18,4 @@ Q: Can I use `?` for placeholders?
 A: No. Please use `$1`, `$2`, `$3`, ... as placeholders.
 
 Q: Which version's golang is supported?
-A: go 1.10.x or later.
+A: go 1.11.x or later.
