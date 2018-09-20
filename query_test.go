@@ -1,20 +1,25 @@
-package sparql_test
+package sparql
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net/http"
+	"net/http/httptest"
+	"reflect"
+	"testing"
 	"time"
 
-	"github.com/garsue/sparql"
+	"github.com/garsue/sparql/logger"
 )
 
 func ExampleClient_Query_simple() {
-	cli, err := sparql.New("http://ja.dbpedia.org/sparql",
-		sparql.MaxIdleConns(100),
-		sparql.IdleConnTimeout(90*time.Second),
-		sparql.Timeout(30*time.Second),
-		sparql.Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		sparql.Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+	cli, err := New("http://ja.dbpedia.org/sparql",
+		MaxIdleConns(100),
+		IdleConnTimeout(90*time.Second),
+		Timeout(30*time.Second),
+		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -38,12 +43,12 @@ func ExampleClient_Query_simple() {
 }
 
 func ExampleClient_Query_parameter() {
-	cli, err := sparql.New("http://ja.dbpedia.org/sparql",
-		sparql.MaxIdleConns(100),
-		sparql.IdleConnTimeout(90*time.Second),
-		sparql.Timeout(30*time.Second),
-		sparql.Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		sparql.Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+	cli, err := New("http://ja.dbpedia.org/sparql",
+		MaxIdleConns(100),
+		IdleConnTimeout(90*time.Second),
+		Timeout(30*time.Second),
+		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -58,7 +63,7 @@ func ExampleClient_Query_parameter() {
 	result, err := cli.Query(
 		ctx,
 		`select * where { ?s <http://dbpedia.org/ontology/wikiPageID> $1 . } LIMIT 1`,
-		sparql.Param{
+		Param{
 			Ordinal: 1,
 			Value:   1529557,
 		},
@@ -70,12 +75,12 @@ func ExampleClient_Query_parameter() {
 }
 
 func ExampleClient_Query_iri_parameter() {
-	cli, err := sparql.New("http://ja.dbpedia.org/sparql",
-		sparql.MaxIdleConns(100),
-		sparql.IdleConnTimeout(90*time.Second),
-		sparql.Timeout(30*time.Second),
-		sparql.Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		sparql.Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+	cli, err := New("http://ja.dbpedia.org/sparql",
+		MaxIdleConns(100),
+		IdleConnTimeout(90*time.Second),
+		Timeout(30*time.Second),
+		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -91,9 +96,9 @@ func ExampleClient_Query_iri_parameter() {
 		ctx,
 		"select * where "+
 			"{ $1 <http://ja.dbpedia.org/property/name> ?name . } LIMIT 10",
-		sparql.Param{
+		Param{
 			Ordinal: 1,
-			Value:   sparql.IRI("http://ja.dbpedia.org/resource/ももいろクローバーZ"),
+			Value:   IRI("http://ja.dbpedia.org/resource/ももいろクローバーZ"),
 		},
 	)
 	if err != nil {
@@ -103,12 +108,12 @@ func ExampleClient_Query_iri_parameter() {
 }
 
 func ExampleClient_Query_language_tag() {
-	cli, err := sparql.New("http://ja.dbpedia.org/sparql",
-		sparql.MaxIdleConns(100),
-		sparql.IdleConnTimeout(90*time.Second),
-		sparql.Timeout(30*time.Second),
-		sparql.Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		sparql.Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+	cli, err := New("http://ja.dbpedia.org/sparql",
+		MaxIdleConns(100),
+		IdleConnTimeout(90*time.Second),
+		Timeout(30*time.Second),
+		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -123,9 +128,9 @@ func ExampleClient_Query_language_tag() {
 	result, err := cli.Query(
 		ctx,
 		`select * where { ?s <http://ja.dbpedia.org/property/name> $1 . } LIMIT 10`,
-		sparql.Param{
+		Param{
 			Ordinal: 1,
-			Value: sparql.Literal{
+			Value: Literal{
 				Value:       "ももいろクローバー",
 				LanguageTag: "ja",
 			},
@@ -138,12 +143,12 @@ func ExampleClient_Query_language_tag() {
 }
 
 func ExampleClient_Query_typed_literal_with_iri() {
-	cli, err := sparql.New("http://ja.dbpedia.org/sparql",
-		sparql.MaxIdleConns(100),
-		sparql.IdleConnTimeout(90*time.Second),
-		sparql.Timeout(30*time.Second),
-		sparql.Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		sparql.Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+	cli, err := New("http://ja.dbpedia.org/sparql",
+		MaxIdleConns(100),
+		IdleConnTimeout(90*time.Second),
+		Timeout(30*time.Second),
+		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -159,11 +164,11 @@ func ExampleClient_Query_typed_literal_with_iri() {
 		ctx,
 		"select * where "+
 			"{ ?s <http://dbpedia.org/ontology/wikiPageLength> $1 . } LIMIT 1",
-		sparql.Param{
+		Param{
 			Ordinal: 1,
-			Value: sparql.Literal{
+			Value: Literal{
 				Value:    76516,
-				DataType: sparql.IRI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+				DataType: IRI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
 			},
 		},
 	)
@@ -174,12 +179,12 @@ func ExampleClient_Query_typed_literal_with_iri() {
 }
 
 func ExampleClient_Query_typed_literal_prefixed_name() {
-	cli, err := sparql.New("http://ja.dbpedia.org/sparql",
-		sparql.MaxIdleConns(100),
-		sparql.IdleConnTimeout(90*time.Second),
-		sparql.Timeout(30*time.Second),
-		sparql.Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		sparql.Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+	cli, err := New("http://ja.dbpedia.org/sparql",
+		MaxIdleConns(100),
+		IdleConnTimeout(90*time.Second),
+		Timeout(30*time.Second),
+		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -194,11 +199,11 @@ func ExampleClient_Query_typed_literal_prefixed_name() {
 	result, err := cli.Query(
 		ctx,
 		`select * where { ?s <http://dbpedia.org/ontology/birthYear> $1 . } LIMIT 1`,
-		sparql.Param{
+		Param{
 			Ordinal: 1,
-			Value: sparql.Literal{
+			Value: Literal{
 				Value:    "1995",
-				DataType: sparql.PrefixedName("xsd:gYear"),
+				DataType: PrefixedName("xsd:gYear"),
 			},
 		},
 	)
@@ -209,12 +214,12 @@ func ExampleClient_Query_typed_literal_prefixed_name() {
 }
 
 func ExampleClient_Query_parameterized_subject_and_object() {
-	cli, err := sparql.New("http://ja.dbpedia.org/sparql",
-		sparql.MaxIdleConns(100),
-		sparql.IdleConnTimeout(90*time.Second),
-		sparql.Timeout(30*time.Second),
-		sparql.Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		sparql.Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+	cli, err := New("http://ja.dbpedia.org/sparql",
+		MaxIdleConns(100),
+		IdleConnTimeout(90*time.Second),
+		Timeout(30*time.Second),
+		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -227,13 +232,13 @@ func ExampleClient_Query_parameterized_subject_and_object() {
 
 	// Parameterized subject and object
 	result, err := cli.Query(ctx, `select * where { $1 $2 ?o . } LIMIT 1000`,
-		sparql.Param{
+		Param{
 			Ordinal: 1,
-			Value:   sparql.PrefixedName("dbpj:有安杏果"),
+			Value:   PrefixedName("dbpj:有安杏果"),
 		},
-		sparql.Param{
+		Param{
 			Ordinal: 2,
-			Value:   sparql.PrefixedName("dbp-owl:birthYear"),
+			Value:   PrefixedName("dbp-owl:birthYear"),
 		},
 	)
 	if err != nil {
@@ -243,12 +248,12 @@ func ExampleClient_Query_parameterized_subject_and_object() {
 }
 
 func ExampleClient_Query_ask() {
-	cli, err := sparql.New("http://ja.dbpedia.org/sparql",
-		sparql.MaxIdleConns(100),
-		sparql.IdleConnTimeout(90*time.Second),
-		sparql.Timeout(30*time.Second),
-		sparql.Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		sparql.Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+	cli, err := New("http://ja.dbpedia.org/sparql",
+		MaxIdleConns(100),
+		IdleConnTimeout(90*time.Second),
+		Timeout(30*time.Second),
+		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -268,4 +273,77 @@ func ExampleClient_Query_ask() {
 		panic(err)
 	}
 	log.Printf("%+v\n", result)
+}
+
+func TestClient_Query(t *testing.T) {
+	t.Run("request error", func(t *testing.T) {
+		c, err := New("foo")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if _, err := c.Query(context.Background(), ""); err == nil {
+			t.Errorf("Client.Query() error = %v", err)
+		}
+	})
+	t.Run("not ok", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "", http.StatusBadRequest)
+			},
+		))
+
+		c := &Client{
+			HTTPClient: *server.Client(),
+			Logger:     *logger.New(),
+			Endpoint:   server.URL,
+		}
+		if _, err := c.Query(context.Background(), ""); err == nil {
+			t.Errorf("Client.Query() error = %v", err)
+			return
+		}
+	})
+	t.Run("not json", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprint(w, "not json")
+			},
+		))
+
+		c := &Client{
+			HTTPClient: *server.Client(),
+			Logger:     *logger.New(),
+			Endpoint:   server.URL,
+		}
+		if _, err := c.Query(context.Background(), ""); err == nil {
+			t.Errorf("Client.Query() error = %v", err)
+			return
+		}
+	})
+	t.Run("success", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprint(w, "{}")
+			},
+		))
+
+		c := &Client{
+			HTTPClient: *server.Client(),
+			Logger:     *logger.New(),
+			Endpoint:   server.URL,
+			prefixes:   map[string]IRI{"foo": "bar"},
+		}
+		got, err := c.Query(context.Background(), "", Param{
+			Ordinal: 0,
+			Value:   1,
+		})
+		if err != nil {
+			t.Errorf("Client.Query() error = %v", err)
+			return
+		}
+		want := &QueryResult{}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("Client.Query() = %v, want %v", got, want)
+		}
+	})
 }
