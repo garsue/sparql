@@ -15,6 +15,7 @@ type Connector struct {
 }
 
 // NewConnector returns `driver.Connector`.
+// TODO pass driver
 func NewConnector(name string, opts ...sparql.Option) *Connector {
 	return &Connector{
 		Name:    name,

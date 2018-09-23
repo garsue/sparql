@@ -10,6 +10,12 @@ build:
   script:
   - go build
 
+
+test:
+  image: golang:${GO_VERSION}
+  script:
+  - go test -race -cover ./...
+
 lint:
   image: golang:${GO_VERSION}
   cache:
@@ -19,10 +25,9 @@ lint:
     PACKAGE_NAME: github.com/garsue/sparql
   script:
   - test -e ./bin/gometalinter || curl -L https://git.io/vp6lP | sh
-  - PATH=$(pwd)/bin:$PATH
   - mkdir -p /go/src/github.com/garsue
   - ln -s $CI_PROJECT_DIR /go/src/${PACKAGE_NAME}
   - cd /go/src/${PACKAGE_NAME}
-  - ./bin/gometalinter ./...
+  - PATH=$(pwd)/bin:$PATH ./bin/gometalinter ./...
 
 

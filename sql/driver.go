@@ -25,6 +25,7 @@ func (d *Driver) Open(name string) (driver.Conn, error) {
 
 // OpenConnector returns `driver.Connector`.
 func (d *Driver) OpenConnector(name string) (driver.Connector, error) {
+	// TODO Use NewConnector
 	return &Connector{
 		driver: d,
 		Name:   name,
