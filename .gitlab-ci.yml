@@ -24,7 +24,7 @@ bench:
     paths:
     - benchstat
   variables:
-    PREV_BENCH_BRANCH: bench
+    PREV_BENCH_BRANCH: v0
   script:
   - |
     curl -fsSL -o artifacts.zip --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
