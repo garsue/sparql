@@ -66,6 +66,7 @@ func ExampleConn_QueryContext() {
 
 func ExampleConn_QueryContext_hojin_info() {
 	db := sql.OpenDB(NewConnector(
+		nil,
 		"https://api.hojin-info.go.jp/sparql",
 		sparql.Timeout(5*time.Second),
 		sparql.MaxIdleConns(0),
