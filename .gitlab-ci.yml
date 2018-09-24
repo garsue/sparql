@@ -10,11 +10,15 @@ build:
   script:
   - go build
 
-
 test:
   image: golang:${GO_VERSION}
   script:
   - go test -race -cover ./...
+
+bench:
+  image: golang:${GO_VERSION}
+  script:
+  - go test -count 10 -bench . -benchmem
 
 lint:
   image: golang:${GO_VERSION}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -344,6 +345,45 @@ func TestClient_Query(t *testing.T) {
 		want := &QueryResult{}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Client.Query() = %v, want %v", got, want)
+		}
+	})
+}
+
+func BenchmarkClient_request(b *testing.B) {
+	b.Run("query", func(b *testing.B) {
+		client, err := New("endpoint")
+		if err != nil {
+			b.Fatal(err)
+		}
+		qs := make([]string, 0, b.N)
+		for i := 0; i < b.N; i++ {
+			qs = append(qs, fmt.Sprintf("query-%d", i))
+		}
+
+		ctx := context.Background()
+		query := strings.Join(qs, ",")
+		b.ResetTimer()
+		if _, err := client.request(ctx, query); err != nil {
+			b.Fatal(err)
+		}
+	})
+	b.Run("params", func(b *testing.B) {
+		client, err := New("endpoint")
+		if err != nil {
+			b.Fatal(err)
+		}
+		params := make([]Param, 0, b.N)
+		for i := 0; i < b.N; i++ {
+			params = append(params, Param{
+				Ordinal: i,
+				Value:   i,
+			})
+		}
+
+		ctx := context.Background()
+		b.ResetTimer()
+		if _, err := client.request(ctx, "", params...); err != nil {
+			b.Fatal(err)
 		}
 	})
 }
