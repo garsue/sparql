@@ -17,8 +17,11 @@ test:
 
 bench:
   image: golang:${GO_VERSION}
+  artifacts:
+    paths:
+    - bench.txt
   script:
-  - go test -count 10 -bench . -benchmem
+  - go test -count 10 -bench . -benchmem | tee > bench.txt
 
 lint:
   image: golang:${GO_VERSION}
