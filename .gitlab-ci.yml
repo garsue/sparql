@@ -20,8 +20,19 @@ bench:
   artifacts:
     paths:
     - bench.txt
+  cache:
+    paths:
+    - benchstat
+  variables:
+    PREV_BENCH_BRANCH: bench
   script:
-  - go test -count 10 -bench . -benchmem | tee > bench.txt
+  - |
+    curl -fsSL -o artifacts.zip --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+    "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/${PREV_BENCH_BRANCH}/download?job=bench"
+  - python -m zipfile -e artifacts.zip prev
+  - go test -count 10 -bench . -benchmem > bench.txt
+  - test -e ./benchstat || ( go get -u golang.org/x/perf/cmd/benchstat && mv $GOPATH/bin/benchstat . )
+  - ./benchstat prev/bench.txt bench.txt
 
 lint:
   image: golang:${GO_VERSION}
