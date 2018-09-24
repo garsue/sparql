@@ -10,6 +10,30 @@ build:
   script:
   - go build
 
+test:
+  image: golang:${GO_VERSION}
+  script:
+  - go test -race -cover ./...
+
+bench:
+  image: golang:${GO_VERSION}
+  artifacts:
+    paths:
+    - bench.txt
+  cache:
+    paths:
+    - benchstat
+  variables:
+    PREV_BENCH_BRANCH: v0
+  script:
+  - |
+    curl -fsSL -o artifacts.zip --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+    "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/${PREV_BENCH_BRANCH}/download?job=bench"
+  - python -m zipfile -e artifacts.zip prev
+  - go test -count 10 -bench . -benchmem > bench.txt
+  - test -e ./benchstat || ( go get -u golang.org/x/perf/cmd/benchstat && mv $GOPATH/bin/benchstat . )
+  - ./benchstat prev/bench.txt bench.txt
+
 lint:
   image: golang:${GO_VERSION}
   cache:
@@ -19,10 +43,9 @@ lint:
     PACKAGE_NAME: github.com/garsue/sparql
   script:
   - test -e ./bin/gometalinter || curl -L https://git.io/vp6lP | sh
-  - PATH=$(pwd)/bin:$PATH
   - mkdir -p /go/src/github.com/garsue
   - ln -s $CI_PROJECT_DIR /go/src/${PACKAGE_NAME}
   - cd /go/src/${PACKAGE_NAME}
-  - ./bin/gometalinter ./...
+  - PATH=$(pwd)/bin:$PATH ./bin/gometalinter ./...
 
 

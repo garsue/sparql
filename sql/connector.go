@@ -15,8 +15,13 @@ type Connector struct {
 }
 
 // NewConnector returns `driver.Connector`.
-func NewConnector(name string, opts ...sparql.Option) *Connector {
+func NewConnector(
+	driver driver.Driver,
+	name string,
+	opts ...sparql.Option,
+) *Connector {
 	return &Connector{
+		driver:  driver,
 		Name:    name,
 		options: opts,
 	}

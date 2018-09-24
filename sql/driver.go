@@ -25,8 +25,5 @@ func (d *Driver) Open(name string) (driver.Conn, error) {
 
 // OpenConnector returns `driver.Connector`.
 func (d *Driver) OpenConnector(name string) (driver.Connector, error) {
-	return &Connector{
-		driver: d,
-		Name:   name,
-	}, nil
+	return NewConnector(d, name), nil
 }
