@@ -357,7 +357,7 @@ func BenchmarkClient_request(b *testing.B) {
 		}
 		qs := make([]string, 0, b.N)
 		for i := 0; i < b.N; i++ {
-			qs = append(qs, fmt.Sprintf("query-%d", i))
+			qs = append(qs, fmt.Sprintf("query-%d", i, 1))
 		}
 
 		ctx := context.Background()
