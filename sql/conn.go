@@ -3,7 +3,9 @@ package sql
 import (
 	"context"
 	"database/sql/driver"
+	"fmt"
 	"io"
+	"time"
 
 	"github.com/garsue/sparql"
 )
@@ -53,12 +55,34 @@ func (r *Rows) Next(dest []driver.Value) error {
 
 	b := r.queryResult.Results.Bindings[r.processed]
 	for i, k := range r.queryResult.Head.Vars {
-		switch b[k].Type {
-		default:
-			dest[i] = b[k].Value
-		}
+		dest[i] = scan(b[k])
 	}
 	return nil
+}
+
+func scan(v struct {
+	Type     sparql.Type `json:"type"`
+	DataType sparql.IRI  `json:"datatype"`
+	XMLLang  string      `json:"xml:lang"`
+	Value    interface{} `json:"value"`
+}) driver.Value {
+	switch v.Type {
+	case sparql.TypeTypedLiteral:
+		switch v.DataType {
+		case "http://www.w3.org/2001/XMLSchema#dateTime":
+			s := fmt.Sprint(v.Value)
+			for _, f := range []string{
+				"2006-01-02T15:04:05.999999999",
+				time.RFC3339Nano,
+			} {
+				t, err := time.ParseInLocation(f, s, time.UTC)
+				if err == nil {
+					return t
+				}
+			}
+		}
+	}
+	return v.Value
 }
 
 // QueryContext queries to a SPARQL source.
