@@ -166,6 +166,7 @@ func TestRows_Close(t *testing.T) {
 	}
 }
 
+// nolint: gocyclo, dupl
 func TestRows_Next(t *testing.T) {
 	t.Run("ASK", func(t *testing.T) {
 		r := &Rows{
@@ -211,6 +212,85 @@ func TestRows_Next(t *testing.T) {
 			t.Errorf("Rows.Next() error = %v", err)
 		}
 		want := []driver.Value{1}
+		if !reflect.DeepEqual(dest, want) {
+			t.Errorf("got %v want %v", dest, want)
+		}
+		if err := r.Next(dest); err != io.EOF {
+			t.Errorf("Rows.Next() error = %v, wantErr %v", err, io.EOF)
+		}
+	})
+	t.Run("time.Time", func(t *testing.T) {
+		r := &Rows{
+			queryResult: &sparql.QueryResult{
+				Head: sparql.Head{
+					Vars: []string{"foo", "bar", "baz", "qux"},
+				},
+				Results: sparql.Results{
+					Bindings: []sparql.Binding{
+						{
+							"foo": struct {
+								Type     sparql.Type `json:"type"`
+								DataType sparql.IRI  `json:"datatype"`
+								XMLLang  string      `json:"xml:lang"`
+								Value    interface{} `json:"value"`
+							}{
+								Type:     sparql.TypeTypedLiteral,
+								DataType: "http://www.w3.org/2001/XMLSchema#dateTime",
+								Value:    "2015-11-19T00:10:11",
+							},
+							"bar": struct {
+								Type     sparql.Type `json:"type"`
+								DataType sparql.IRI  `json:"datatype"`
+								XMLLang  string      `json:"xml:lang"`
+								Value    interface{} `json:"value"`
+							}{
+								Type:     sparql.TypeTypedLiteral,
+								DataType: "http://www.w3.org/2001/XMLSchema#dateTime",
+								Value:    "2015-11-19T09:10:11+09:00",
+							},
+							"baz": struct {
+								Type     sparql.Type `json:"type"`
+								DataType sparql.IRI  `json:"datatype"`
+								XMLLang  string      `json:"xml:lang"`
+								Value    interface{} `json:"value"`
+							}{
+								Type:     sparql.TypeTypedLiteral,
+								DataType: "http://www.w3.org/2001/XMLSchema#dateTime",
+								Value:    "2015-11-19T00:10:11Z",
+							},
+							"qux": struct {
+								Type     sparql.Type `json:"type"`
+								DataType sparql.IRI  `json:"datatype"`
+								XMLLang  string      `json:"xml:lang"`
+								Value    interface{} `json:"value"`
+							}{
+								Type:     sparql.TypeTypedLiteral,
+								DataType: "http://www.w3.org/2001/XMLSchema#dateTime",
+								Value:    "2015-11-19T00:10:11.12345",
+							},
+						},
+					},
+				},
+			},
+		}
+		dest := make([]driver.Value, 4)
+		if err := r.Next(dest); err != nil {
+			t.Errorf("Rows.Next() error = %v", err)
+		}
+		want := []driver.Value{
+			time.Date(2015, time.November, 19, 0, 10, 11, 0,
+				time.UTC,
+			),
+			time.Date(2015, time.November, 19, 9, 10, 11, 0,
+				time.FixedZone("", 9*60*60),
+			),
+			time.Date(2015, time.November, 19, 0, 10, 11, 0,
+				time.UTC,
+			),
+			time.Date(2015, time.November, 19, 0, 10, 11, 123450000,
+				time.UTC,
+			),
+		}
 		if !reflect.DeepEqual(dest, want) {
 			t.Errorf("got %v want %v", dest, want)
 		}
