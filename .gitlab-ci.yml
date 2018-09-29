@@ -49,4 +49,6 @@ lint:
   - mkdir -p /go/src/github.com/garsue
   - ln -s $CI_PROJECT_DIR /go/src/${PACKAGE_NAME}
   - cd /go/src/${PACKAGE_NAME}
-  - PATH=$(pwd)/bin:$PATH ./bin/gometalinter ./... --checkstyle | ./reviewdog -f=checkstyle -diff="git diff master"
+  - |
+    PATH=$(pwd)/bin:$PATH ./bin/gometalinter ./... --checkstyle | \
+    ./reviewdog -f=checkstyle -reporter=github-pr-check -diff="git diff origin/master"
