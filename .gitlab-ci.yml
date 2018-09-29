@@ -37,13 +37,16 @@ lint:
   cache:
     paths:
     - bin
+    - reviewdog
   variables:
     PACKAGE_NAME: github.com/garsue/sparql
   script:
   - test -e ./bin/gometalinter || curl -L https://git.io/vp6lP | sh
+  - |
+    test -e ./reviewdog || \
+    curl -fsSL -o reviewdog https://github.com/haya14busa/reviewdog/releases/download/0.9.11/reviewdog_linux_amd64
+    chmod +x reviewdog
   - mkdir -p /go/src/github.com/garsue
   - ln -s $CI_PROJECT_DIR /go/src/${PACKAGE_NAME}
   - cd /go/src/${PACKAGE_NAME}
-  - PATH=$(pwd)/bin:$PATH ./bin/gometalinter ./...
-
-
+  - PATH=$(pwd)/bin:$PATH ./bin/gometalinter ./... --checkstyle | ./reviewdog -f=checkstyle -diff="git diff master"
