@@ -5,16 +5,6 @@ env:
   script:
   - env
 
-build:
-  image: golang:${GO_VERSION}
-  script:
-  - go build
-
-test:
-  image: golang:${GO_VERSION}
-  script:
-  - go test -race -cover ./...
-
 bench:
   image: golang:${GO_VERSION}
   artifacts:
@@ -31,19 +21,3 @@ bench:
   - go test -count 10 -bench . -benchmem > bench.txt
   - test -e ./benchstat || ( go get -u golang.org/x/perf/cmd/benchstat && mv $GOPATH/bin/benchstat . )
   - ./benchstat prev/bench.txt bench.txt
-
-lint:
-  image: golang:${GO_VERSION}
-  cache:
-    paths:
-    - bin
-  variables:
-    PACKAGE_NAME: github.com/garsue/sparql
-  script:
-  - test -e ./bin/gometalinter || curl -L https://git.io/vp6lP | sh
-  - mkdir -p /go/src/github.com/garsue
-  - ln -s $CI_PROJECT_DIR /go/src/${PACKAGE_NAME}
-  - cd /go/src/${PACKAGE_NAME}
-  - PATH=$(pwd)/bin:$PATH ./bin/gometalinter ./...
-
-
