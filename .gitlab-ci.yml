@@ -13,19 +13,19 @@ bench:
       - bench.txt
   script:
     - go test -count 10 -bench . -benchmem > bench.txt
-
-benchstat:
-  stage: stat
-  image: golang:${GO_VERSION}
-  cache:
-    paths:
-      - benchstat
-  dependencies:
-    - bench
-  script:
-    - |
-      curl -fsSL -o artifacts.zip --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-      "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=bench"
-    - python -m zipfile -e artifacts.zip prev
-    - test -e ./benchstat || (go get -u golang.org/x/perf/cmd/benchstat && mv $GOPATH/bin/benchstat .)
-    - ./benchstat prev/bench.txt bench.txt
+#
+#benchstat:
+#  stage: stat
+#  image: golang:${GO_VERSION}
+#  cache:
+#    paths:
+#      - benchstat
+#  dependencies:
+#    - bench
+#  script:
+#    - |
+#      curl -fsSL -o artifacts.zip --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+#      "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=bench"
+#    - python -m zipfile -e artifacts.zip prev
+#    - test -e ./benchstat || (go get -u golang.org/x/perf/cmd/benchstat && mv $GOPATH/bin/benchstat .)
+#    - ./benchstat prev/bench.txt bench.txt
