@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/garsue/sparql.svg?branch=master)](https://travis-ci.org/garsue/sparql)
 [![codecov](https://codecov.io/gh/garsue/sparql/branch/master/graph/badge.svg)](https://codecov.io/gh/garsue/sparql)
+[![Go Report Card](https://goreportcard.com/badge/github.com/garsue/sparql)](https://goreportcard.com/report/github.com/garsue/sparql)
 
 # Go SQL driver for SPARQL
 
