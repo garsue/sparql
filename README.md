@@ -5,6 +5,8 @@
 
 **SUPER EXPERIMENTAL**
 
+[GoDoc](https://godoc.org/github.com/garsue/sparql)
+
 A [SPARQL](https://www.w3.org/TR/sparql11-protocol/)-Driver for Go.
 Including [database/sql](https://golang.org/pkg/database/sql/) implementation.
 
