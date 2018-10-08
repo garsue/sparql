@@ -1,5 +1,5 @@
-[![pipeline status](https://gitlab.com/garsue/sparql/badges/master/pipeline.svg)](https://gitlab.com/garsue/sparql/commits/master)
-[![coverage report](https://gitlab.com/garsue/sparql/badges/master/coverage.svg)](https://gitlab.com/garsue/sparql/commits/master)
+[![Build Status](https://travis-ci.org/garsue/sparql.svg?branch=master)](https://travis-ci.org/garsue/sparql)
+[![codecov](https://codecov.io/gh/garsue/sparql/branch/master/graph/badge.svg)](https://codecov.io/gh/garsue/sparql)
 
 # Go SQL driver for SPARQL
 
