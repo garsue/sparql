@@ -3,6 +3,7 @@ package sparql
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -168,7 +169,7 @@ func ExampleClient_Query_typed_literal_with_iri() {
 		Param{
 			Ordinal: 1,
 			Value: Literal{
-				Value:    76516,
+				Value:    "76516",
 				DataType: IRI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
 			},
 		},
@@ -307,7 +308,7 @@ func TestClient_Query(t *testing.T) {
 	t.Run("not json", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprint(w, "not json")
+				_, _ = fmt.Fprint(w, "not json")
 			},
 		))
 
@@ -324,7 +325,17 @@ func TestClient_Query(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprint(w, "{}")
+				_, _ = fmt.Fprint(w, `<?xml version="1.0"?>
+<sparql xmlns="http://www.w3.org/2005/sparql-results#">
+  <head>
+    <variable name="x"/>
+  </head>
+  <results>
+    <result> 
+      <binding name="x"><bnode>r2</bnode></binding>
+    </result>
+  </results>
+</sparql>`)
 			},
 		))
 
@@ -334,7 +345,7 @@ func TestClient_Query(t *testing.T) {
 			Endpoint:   server.URL,
 			prefixes:   map[string]IRI{"foo": "bar"},
 		}
-		got, err := c.Query(context.Background(), "", Param{
+		result, err := c.Query(context.Background(), "", Param{
 			Ordinal: 0,
 			Value:   1,
 		})
@@ -342,9 +353,20 @@ func TestClient_Query(t *testing.T) {
 			t.Errorf("Client.Query() error = %v", err)
 			return
 		}
-		want := &QueryResult{}
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("Client.Query() = %v, want %v", got, want)
+		if got, want := result.Variables(), []string{"x"}; !reflect.DeepEqual(got, want) {
+			t.Errorf("result.Variables() = %v, want %v", got, want)
+		}
+		bindings, err := result.Next()
+		if err != nil {
+			t.Errorf("iter.Next() error = %v", err)
+			return
+		}
+		if want := map[string]Value{"x": BNode("r2")}; !reflect.DeepEqual(bindings, want) {
+			t.Errorf("Client.Query() = %v, want %v", bindings, want)
+		}
+		if _, err = result.Next(); err != io.EOF {
+			t.Errorf("iter.Next() error = %v", err)
+			return
 		}
 	})
 }

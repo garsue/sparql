@@ -4,31 +4,18 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 )
 
-// QueryResult is a destination to decoding a SPARQL query result json.
-type QueryResult struct {
-	Head    Head    `json:"head"`
-	Results Results `json:"results"`
-	Boolean bool    `json:"boolean"`
-}
-
-// Head is a part of a SPARQL query result json.
-type Head struct {
-	Vars []string `json:"vars"`
-}
-
 // Results is a part of a SPARQL query result json.
 type Results struct {
-	Bindings []Binding `json:"bindings"`
+	Bindings []Bindings `json:"bindings"`
 }
 
-// Binding is a part of a SPARQL query result json.
-type Binding map[string]struct {
+// Bindings is a part of a SPARQL query result json.
+type Bindings map[string]struct {
 	Type     Type        `json:"type"`
 	DataType IRI         `json:"datatype"`
 	XMLLang  string      `json:"xml:lang"`
@@ -51,7 +38,7 @@ func (c *Client) Query(
 	ctx context.Context,
 	query string,
 	params ...Param,
-) (*QueryResult, error) {
+) (QueryResult, error) {
 	request, err := c.request(ctx, query, params...)
 	if err != nil {
 		return nil, err
@@ -77,13 +64,7 @@ func (c *Client) Query(
 		)
 	}
 
-	var result QueryResult
-	//body := io.TeeReader(resp.Body, os.Stdout)
-	body := resp.Body
-	if err := json.NewDecoder(body).Decode(&result); err != nil {
-		return nil, err
-	}
-	return &result, nil
+	return DecodeXMLQueryResult(resp.Body)
 }
 
 func (c *Client) request(
@@ -139,7 +120,7 @@ func (c *Client) request(
 	c.Logger.Debug.Println(built)
 	url := request.URL.Query()
 	url.Set("query", built)
-	url.Set("format", "application/sparql-results+json")
+	url.Set("format", "application/sparql-results+xml")
 	request.URL.RawQuery = url.Encode()
 	return request, nil
 }

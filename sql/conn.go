@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/garsue/sparql"
@@ -17,72 +16,62 @@ type Conn struct {
 
 // Rows implements `driver.Rows` with `sparql.QueryResult`.
 type Rows struct {
-	queryResult *sparql.QueryResult
-	processed   int64
+	queryResult sparql.QueryResult
 }
 
 // Columns returns the names of the columns.
 func (r *Rows) Columns() []string {
-	if len(r.queryResult.Head.Vars) != 0 {
-		return r.queryResult.Head.Vars
-	}
-	// ASK query
-	return []string{"boolean"}
+	return r.queryResult.Variables()
 }
 
 // Close closes the rows iterator.
 func (r *Rows) Close() error {
-	r.queryResult = nil
-	return nil
+	return r.queryResult.Close()
 }
 
 // Next is called to populate the next row of data into
 // the provided slice.
 func (r *Rows) Next(dest []driver.Value) error {
-	defer func() { r.processed++ }()
-
 	// See Boolean field if the query is ASK (not SELECT)
-	if r.processed == 0 && len(r.queryResult.Head.Vars) == 0 {
+	variables := r.queryResult.Variables()
+	if len(variables) == 0 {
 		for i := range dest {
-			dest[i] = r.queryResult.Boolean
+			b, err := r.queryResult.Boolean()
+			if err != nil {
+				return err
+			}
+			dest[i] = b
 			return nil
 		}
 	}
 
-	if r.processed >= int64(len(r.queryResult.Results.Bindings)) {
-		return io.EOF
+	bindings, err := r.queryResult.Next()
+	if err != nil {
+		return err
 	}
-
-	b := r.queryResult.Results.Bindings[r.processed]
-	for i, k := range r.queryResult.Head.Vars {
-		dest[i] = scan(b[k])
+	for i, k := range variables {
+		dest[i] = scan(bindings[k])
 	}
 	return nil
 }
 
-func scan(v struct {
-	Type     sparql.Type `json:"type"`
-	DataType sparql.IRI  `json:"datatype"`
-	XMLLang  string      `json:"xml:lang"`
-	Value    interface{} `json:"value"`
-}) driver.Value {
-	switch v.Type {
-	case sparql.TypeTypedLiteral:
-		switch v.DataType {
-		case "http://www.w3.org/2001/XMLSchema#dateTime":
-			s := fmt.Sprint(v.Value)
+func scan(b sparql.Value) driver.Value {
+	if b, ok := b.(sparql.Literal); ok {
+		switch b.DataType {
+		case sparql.IRI("http://www.w3.org/2001/XMLSchema#dateTime"):
 			for _, f := range []string{
 				"2006-01-02T15:04:05.999999999",
 				time.RFC3339Nano,
 			} {
-				t, err := time.ParseInLocation(f, s, time.UTC)
+				t, err := time.ParseInLocation(f, fmt.Sprint(b.Value), time.UTC)
 				if err == nil {
 					return t
 				}
 			}
 		}
+		return b.Value
 	}
-	return v.Value
+	return b
 }
 
 // QueryContext queries to a SPARQL source.
