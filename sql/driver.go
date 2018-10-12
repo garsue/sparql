@@ -9,7 +9,6 @@ import (
 // Driver accesses SPARQL sources.
 type Driver struct{}
 
-// nolint: gochecknoinits
 func init() {
 	sql.Register("sparql", &Driver{})
 }

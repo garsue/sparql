@@ -96,7 +96,7 @@ func TestXMLQueryResult_Next(t *testing.T) {
 	})
 }
 
-//nolint:gocyclo
+// nolint: gocyclo
 func Test_decodeResult(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		decoder := xml.NewDecoder(strings.NewReader(`<result></result>`))
@@ -167,7 +167,7 @@ func Test_decodeResult(t *testing.T) {
 	})
 }
 
-//nolint:dupl,gocyclo,errcheck
+// nolint: dupl, gocyclo, errcheck
 func Test_decodeBinding(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		decoder := xml.NewDecoder(strings.NewReader(`<binding name="x"></binding>`))
