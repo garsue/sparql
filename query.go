@@ -9,30 +9,6 @@ import (
 	"strings"
 )
 
-// Results is a part of a SPARQL query result json.
-type Results struct {
-	Bindings []Bindings `json:"bindings"`
-}
-
-// Bindings is a part of a SPARQL query result json.
-type Bindings map[string]struct {
-	Type     Type        `json:"type"`
-	DataType URI         `json:"datatype"`
-	XMLLang  string      `json:"xml:lang"`
-	Value    interface{} `json:"value"`
-}
-
-// Type is the binding value type.
-type Type string
-
-// Types https://www.w3.org/TR/rdf-sparql-json-res/#variable-binding-results
-const (
-	TypeURI          Type = "uri"
-	TypeLiteral      Type = "literal"
-	TypeTypedLiteral Type = "typed-literal"
-	TypeBlankNode    Type = "bnode"
-)
-
 // Query queries to the endpoint.
 func (c *Client) Query(
 	ctx context.Context,
