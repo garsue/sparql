@@ -82,7 +82,7 @@ func ExampleClient_Query_parameter() {
 	}
 }
 
-func ExampleClient_Query_iri_parameter() {
+func ExampleClient_Query_uri_parameter() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
 		MaxIdleConns(100),
 		IdleConnTimeout(90*time.Second),
@@ -99,14 +99,14 @@ func ExampleClient_Query_iri_parameter() {
 		panic(err2)
 	}
 
-	// IRI parameter
+	// URI parameter
 	result, err := cli.Query(
 		ctx,
 		"select * where "+
 			"{ $1 <http://ja.dbpedia.org/property/name> ?name . } LIMIT 10",
 		Param{
 			Ordinal: 1,
-			Value:   IRI("http://ja.dbpedia.org/resource/ももいろクローバーZ"),
+			Value:   URI("http://ja.dbpedia.org/resource/ももいろクローバーZ"),
 		},
 	)
 	if err != nil {
@@ -156,7 +156,7 @@ func ExampleClient_Query_language_tag() {
 	}
 }
 
-func ExampleClient_Query_typed_literal_with_iri() {
+func ExampleClient_Query_typed_literal_with_uri() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
 		MaxIdleConns(100),
 		IdleConnTimeout(90*time.Second),
@@ -173,7 +173,7 @@ func ExampleClient_Query_typed_literal_with_iri() {
 		panic(err2)
 	}
 
-	// Typed literal with IRI
+	// Typed literal with URI
 	result, err := cli.Query(
 		ctx,
 		"select * where "+
@@ -182,7 +182,7 @@ func ExampleClient_Query_typed_literal_with_iri() {
 			Ordinal: 1,
 			Value: Literal{
 				Value:    "76516",
-				DataType: IRI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+				DataType: URI("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
 			},
 		},
 	)
@@ -367,7 +367,7 @@ func TestClient_Query(t *testing.T) {
 			HTTPClient: *server.Client(),
 			Logger:     *logger.New(),
 			Endpoint:   server.URL,
-			prefixes:   map[string]IRI{"foo": "bar"},
+			prefixes:   map[string]URI{"foo": "bar"},
 		}
 		result, err := c.Query(context.Background(), "", Param{
 			Ordinal: 0,

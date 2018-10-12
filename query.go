@@ -17,7 +17,7 @@ type Results struct {
 // Bindings is a part of a SPARQL query result json.
 type Bindings map[string]struct {
 	Type     Type        `json:"type"`
-	DataType IRI         `json:"datatype"`
+	DataType URI         `json:"datatype"`
 	XMLLang  string      `json:"xml:lang"`
 	Value    interface{} `json:"value"`
 }
@@ -27,7 +27,7 @@ type Type string
 
 // Types https://www.w3.org/TR/rdf-sparql-json-res/#variable-binding-results
 const (
-	TypeIRI          Type = "uri"
+	TypeURI          Type = "uri"
 	TypeLiteral      Type = "literal"
 	TypeTypedLiteral Type = "typed-literal"
 	TypeBlankNode    Type = "bnode"
@@ -82,7 +82,7 @@ func (c *Client) request(
 	b := bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
 
 	// Prepend PREFIX
-	for prefix, iri := range c.prefixes {
+	for prefix, uri := range c.prefixes {
 		if _, err := b.WriteString("PREFIX "); err != nil {
 			return nil, err
 		}
@@ -92,7 +92,7 @@ func (c *Client) request(
 		if _, err := b.WriteString(": "); err != nil {
 			return nil, err
 		}
-		if _, err := b.WriteString(iri.Ref()); err != nil {
+		if _, err := b.WriteString(uri.Ref()); err != nil {
 			return nil, err
 		}
 		if _, err := b.WriteString("\n"); err != nil {

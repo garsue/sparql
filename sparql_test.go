@@ -58,15 +58,15 @@ func TestIdleConnTimeout(t *testing.T) {
 func TestPrefix(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		prefix := "dbpj"
-		iri := IRI("http://ja.dbpedia.org/resource/")
+		uri := URI("http://ja.dbpedia.org/resource/")
 		client := Client{
-			prefixes: map[string]IRI{},
+			prefixes: map[string]URI{},
 		}
-		if err := Prefix(prefix, iri)(&client); err != nil {
+		if err := Prefix(prefix, uri)(&client); err != nil {
 			t.Error(err)
 			return
 		}
-		if got, want := client.prefixes[prefix], iri; got != want {
+		if got, want := client.prefixes[prefix], uri; got != want {
 			t.Errorf("Prefix() = %v, want %v", got, want)
 		}
 	})

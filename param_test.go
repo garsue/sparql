@@ -27,7 +27,7 @@ func TestLiteral_Serialize(t *testing.T) {
 			name: "with datatype",
 			fields: fields{
 				Value:    "1",
-				DataType: IRI("foo"),
+				DataType: URI("foo"),
 			},
 			want: `"""1"""^^<foo>`,
 		},
@@ -177,9 +177,9 @@ func TestParam_Serialize(t *testing.T) {
 			want: `"2018-09-21T12:08:10Z"^^xsd:dateTime`,
 		},
 		{
-			name: "IRI",
+			name: "URI",
 			fields: fields{
-				Value: IRI("foo"),
+				Value: URI("foo"),
 			},
 			want: `<foo>`,
 		},
