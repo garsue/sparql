@@ -13,15 +13,11 @@ cache:
 install:
   - test -d ~/bin || mkdir -p ~/bin/
   - export PATH=~/bin/:$PATH
-  - test -e ~/bin/reviewdog || curl -fSL https://github.com/haya14busa/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_linux_amd64 -o ~/bin/reviewdog
-  - chmod +x ~/bin/reviewdog
-  - test -e ~/bin/gometalinter || (curl -fSL https://git.io/vp6lP | sh && mv ./bin/* ~/bin/)
   - test -e ~/bin/goverage || (go get github.com/haya14busa/goverage && mv $GOPATH/bin/goverage ~/bin/)
 
 script:
   - go test -race -cover ./...
   - goverage -coverprofile=coverage.txt ./...
-  - gometalinter --checkstyle ./... | reviewdog -f=checkstyle -name="gometalinter" -reporter=github-pr-check
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
