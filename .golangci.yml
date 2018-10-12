@@ -96,5 +96,5 @@ linters-settings:
 
 linters:
   enable-all: true
-#  disable:
-#    - prealloc
+  disable:
+    - prealloc
