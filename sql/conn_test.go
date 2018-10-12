@@ -37,7 +37,7 @@ func ExampleConn_QueryContext() {
 	}
 
 	for rows.Next() {
-		var p, o sparql.IRI
+		var p, o sparql.URI
 		if err := rows.Scan(&p, &o); err != nil {
 			panic(err)
 		}

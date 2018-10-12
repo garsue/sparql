@@ -9,11 +9,11 @@ type IRIRef interface {
 	Ref() string
 }
 
-// IRI https://www.w3.org/TR/rdf-sparql-query/#rIRI_REF
-type IRI string
+// URI https://www.w3.org/TR/rdf-sparql-query/#rIRI_REF
+type URI string
 
 // Ref returns IRI_REF.
-func (i IRI) Ref() string {
+func (i URI) Ref() string {
 	return "<" + strings.NewReplacer(
 		"<", "%3C",
 		">", "%3E",

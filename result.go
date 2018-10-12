@@ -29,9 +29,6 @@ type (
 		DataType    IRIRef
 		LanguageTag string
 	}
-
-	// URI represents URI string.
-	URI = IRI
 )
 
 // UnmarshalXML unmarshals the literal element.

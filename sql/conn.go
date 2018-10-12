@@ -56,7 +56,7 @@ func (r *Rows) Next(dest []driver.Value) error {
 func scan(b sparql.Value) driver.Value {
 	if b, ok := b.(sparql.Literal); ok {
 		switch b.DataType {
-		case sparql.IRI("http://www.w3.org/2001/XMLSchema#dateTime"):
+		case sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"):
 			for _, f := range []string{
 				"2006-01-02T15:04:05.999999999",
 				time.RFC3339Nano,

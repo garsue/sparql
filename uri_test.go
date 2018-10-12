@@ -5,7 +5,7 @@ import "testing"
 func TestIRI_Ref(t *testing.T) {
 	tests := []struct {
 		name string
-		i    IRI
+		i    URI
 		want string
 	}{
 		{
@@ -62,7 +62,7 @@ func TestIRI_Ref(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.i.Ref(); got != tt.want {
-				t.Errorf("IRI.Ref() = %v, want %v", got, tt.want)
+				t.Errorf("URI.Ref() = %v, want %v", got, tt.want)
 			}
 		})
 	}
