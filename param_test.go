@@ -7,7 +7,7 @@ import (
 
 func TestLiteral_Serialize(t *testing.T) {
 	type fields struct {
-		Value       interface{}
+		Value       string
 		DataType    IRIRef
 		LanguageTag string
 	}
@@ -19,14 +19,14 @@ func TestLiteral_Serialize(t *testing.T) {
 		{
 			name: "1",
 			fields: fields{
-				Value: 1,
+				Value: "1",
 			},
 			want: `"""1"""`,
 		},
 		{
 			name: "with datatype",
 			fields: fields{
-				Value:    1,
+				Value:    "1",
 				DataType: IRI("foo"),
 			},
 			want: `"""1"""^^<foo>`,
@@ -34,7 +34,7 @@ func TestLiteral_Serialize(t *testing.T) {
 		{
 			name: "with language tag",
 			fields: fields{
-				Value:       1,
+				Value:       "1",
 				LanguageTag: "foo",
 			},
 			want: `"""1"""@foo`,
@@ -188,7 +188,7 @@ func TestParam_Serialize(t *testing.T) {
 			fields: fields{
 				Value: Literal{},
 			},
-			want: `"""<nil>"""`,
+			want: `""""""`,
 		},
 		{
 			name: "default",

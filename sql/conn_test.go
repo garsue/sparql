@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -108,61 +108,56 @@ func ExampleConn_QueryContext_hojin_info() {
 	}
 }
 
+type mockQueryResult struct {
+	variables []string
+	boolean   bool
+	result    map[string]sparql.Value
+	err       error
+}
+
+func (m *mockQueryResult) Variables() []string {
+	return m.variables
+}
+
+func (m *mockQueryResult) Next() (map[string]sparql.Value, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.result, nil
+}
+
+func (m *mockQueryResult) Boolean() (bool, error) {
+	if m.err != nil {
+		return false, m.err
+	}
+	return m.boolean, nil
+}
+
+func (m *mockQueryResult) Close() error {
+	if m.err != nil {
+		return m.err
+	}
+	return nil
+}
+
 func TestRows_Columns(t *testing.T) {
-	type fields struct {
-		queryResult *sparql.QueryResult
-		processed   int64
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   []string
-	}{
-		{
-			name: "success",
-			fields: fields{
-				queryResult: &sparql.QueryResult{
-					Head: sparql.Head{
-						Vars: []string{"foo"},
-					},
-				},
-			},
-			want: []string{"foo"},
-		},
-		{
-			name: "ASK",
-			fields: fields{
-				queryResult: &sparql.QueryResult{
-					Head: sparql.Head{
-						Vars: []string{},
-					},
-				},
-			},
-			want: []string{"boolean"},
+	rows := Rows{
+		queryResult: &mockQueryResult{
+			variables: []string{"foo"},
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := &Rows{
-				queryResult: tt.fields.queryResult,
-				processed:   tt.fields.processed,
-			}
-			if got := r.Columns(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Rows.Columns() = %v, want %v", got, tt.want)
-			}
-		})
+	want := []string{"foo"}
+	if got := rows.Columns(); !reflect.DeepEqual(got, want) {
+		t.Errorf("Rows.Columns() = %v, want %v", got, want)
 	}
 }
 
 func TestRows_Close(t *testing.T) {
 	r := &Rows{
-		queryResult: &sparql.QueryResult{},
+		queryResult: &mockQueryResult{},
 	}
 	if err := r.Close(); err != nil {
 		t.Errorf("Rows.Close() error = %v", err)
-	}
-	if r.queryResult != nil {
-		t.Errorf("got nil want %v", r.queryResult)
 	}
 }
 
@@ -170,9 +165,8 @@ func TestRows_Close(t *testing.T) {
 func TestRows_Next(t *testing.T) {
 	t.Run("ASK", func(t *testing.T) {
 		r := &Rows{
-			queryResult: &sparql.QueryResult{
-				Head:    sparql.Head{},
-				Boolean: true,
+			queryResult: &mockQueryResult{
+				boolean: true,
 			},
 		}
 		dest := make([]driver.Value, 1)
@@ -183,27 +177,25 @@ func TestRows_Next(t *testing.T) {
 		if !reflect.DeepEqual(dest, want) {
 			t.Errorf("got %v want %v", dest, want)
 		}
-		if err := r.Next(dest); err != io.EOF {
-			t.Errorf("Rows.Next() error = %v, wantErr %v", err, io.EOF)
+	})
+	t.Run("ASK error", func(t *testing.T) {
+		askErr := errors.New("ASK error")
+		r := &Rows{
+			queryResult: &mockQueryResult{
+				err: askErr,
+			},
+		}
+		dest := make([]driver.Value, 1)
+		if err := r.Next(dest); err != askErr {
+			t.Errorf("Rows.Next() error = %v", err)
 		}
 	})
-	t.Run("success", func(t *testing.T) {
+	t.Run("SELECT", func(t *testing.T) {
 		r := &Rows{
-			queryResult: &sparql.QueryResult{
-				Head: sparql.Head{
-					Vars: []string{"foo"},
-				},
-				Results: sparql.Results{
-					Bindings: []sparql.Binding{
-						{
-							"foo": struct {
-								Type     sparql.Type `json:"type"`
-								DataType sparql.IRI  `json:"datatype"`
-								XMLLang  string      `json:"xml:lang"`
-								Value    interface{} `json:"value"`
-							}{Value: 1},
-						},
-					},
+			queryResult: &mockQueryResult{
+				variables: []string{"foo"},
+				result: map[string]sparql.Value{
+					"foo": sparql.Literal{Value: "1"},
 				},
 			},
 		}
@@ -211,93 +203,108 @@ func TestRows_Next(t *testing.T) {
 		if err := r.Next(dest); err != nil {
 			t.Errorf("Rows.Next() error = %v", err)
 		}
-		want := []driver.Value{1}
+		want := []driver.Value{"1"}
 		if !reflect.DeepEqual(dest, want) {
 			t.Errorf("got %v want %v", dest, want)
 		}
-		if err := r.Next(dest); err != io.EOF {
-			t.Errorf("Rows.Next() error = %v, wantErr %v", err, io.EOF)
-		}
 	})
-	t.Run("time.Time", func(t *testing.T) {
+	t.Run("SELECT error", func(t *testing.T) {
+		selectErr := errors.New("SELECT error")
 		r := &Rows{
-			queryResult: &sparql.QueryResult{
-				Head: sparql.Head{
-					Vars: []string{"foo", "bar", "baz", "qux"},
-				},
-				Results: sparql.Results{
-					Bindings: []sparql.Binding{
-						{
-							"foo": struct {
-								Type     sparql.Type `json:"type"`
-								DataType sparql.IRI  `json:"datatype"`
-								XMLLang  string      `json:"xml:lang"`
-								Value    interface{} `json:"value"`
-							}{
-								Type:     sparql.TypeTypedLiteral,
-								DataType: "http://www.w3.org/2001/XMLSchema#dateTime",
-								Value:    "2015-11-19T00:10:11",
-							},
-							"bar": struct {
-								Type     sparql.Type `json:"type"`
-								DataType sparql.IRI  `json:"datatype"`
-								XMLLang  string      `json:"xml:lang"`
-								Value    interface{} `json:"value"`
-							}{
-								Type:     sparql.TypeTypedLiteral,
-								DataType: "http://www.w3.org/2001/XMLSchema#dateTime",
-								Value:    "2015-11-19T09:10:11+09:00",
-							},
-							"baz": struct {
-								Type     sparql.Type `json:"type"`
-								DataType sparql.IRI  `json:"datatype"`
-								XMLLang  string      `json:"xml:lang"`
-								Value    interface{} `json:"value"`
-							}{
-								Type:     sparql.TypeTypedLiteral,
-								DataType: "http://www.w3.org/2001/XMLSchema#dateTime",
-								Value:    "2015-11-19T00:10:11Z",
-							},
-							"qux": struct {
-								Type     sparql.Type `json:"type"`
-								DataType sparql.IRI  `json:"datatype"`
-								XMLLang  string      `json:"xml:lang"`
-								Value    interface{} `json:"value"`
-							}{
-								Type:     sparql.TypeTypedLiteral,
-								DataType: "http://www.w3.org/2001/XMLSchema#dateTime",
-								Value:    "2015-11-19T00:10:11.12345",
-							},
-						},
-					},
-				},
+			queryResult: &mockQueryResult{
+				variables: []string{"foo"},
+				err:       selectErr,
 			},
 		}
-		dest := make([]driver.Value, 4)
-		if err := r.Next(dest); err != nil {
+		dest := make([]driver.Value, 1)
+		if err := r.Next(dest); err != selectErr {
 			t.Errorf("Rows.Next() error = %v", err)
 		}
-		want := []driver.Value{
-			time.Date(2015, time.November, 19, 0, 10, 11, 0,
+	})
+}
+
+func Test_scan(t *testing.T) {
+	type args struct {
+		b sparql.Value
+	}
+	tests := []struct {
+		name string
+		args args
+		want driver.Value
+	}{
+		{
+			name: "uri",
+			args: args{
+				b: sparql.URI("http://www.w3.org/2001/XMLSchema#foo"),
+			},
+			want: sparql.URI("http://www.w3.org/2001/XMLSchema#foo"),
+		},
+		{
+			name: "literal",
+			args: args{
+				b: sparql.Literal{
+					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#integer"),
+					Value:    "1",
+				},
+			},
+			want: "1",
+		},
+		{
+			name: "without timezone",
+			args: args{
+				b: sparql.Literal{
+					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"),
+					Value:    "2015-11-19T00:10:11",
+				},
+			},
+			want: time.Date(2015, time.November, 19, 0, 10, 11, 0,
 				time.UTC,
 			),
-			time.Date(2015, time.November, 19, 9, 10, 11, 0,
+		},
+		{
+			name: "with timezone",
+			args: args{
+				b: sparql.Literal{
+					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"),
+					Value:    "2015-11-19T09:10:11+09:00",
+				},
+			},
+			want: time.Date(2015, time.November, 19, 9, 10, 11, 0,
 				time.FixedZone("", 9*60*60),
 			),
-			time.Date(2015, time.November, 19, 0, 10, 11, 0,
+		},
+		{
+			name: "UTC",
+			args: args{
+				b: sparql.Literal{
+					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"),
+					Value:    "2015-11-19T00:10:11Z",
+				},
+			},
+			want: time.Date(2015, time.November, 19, 0, 10, 11, 0,
 				time.UTC,
 			),
-			time.Date(2015, time.November, 19, 0, 10, 11, 123450000,
+		},
+		{
+			name: "nano",
+			args: args{
+				b: sparql.Literal{
+					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"),
+					Value:    "2015-11-19T00:10:11.12345",
+				},
+			},
+			want: time.Date(2015, time.November, 19, 0, 10, 11, 123450000,
 				time.UTC,
 			),
-		}
-		if !reflect.DeepEqual(dest, want) {
-			t.Errorf("got %v want %v", dest, want)
-		}
-		if err := r.Next(dest); err != io.EOF {
-			t.Errorf("Rows.Next() error = %v, wantErr %v", err, io.EOF)
-		}
-	})
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := scan(tt.args.b); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("scan() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
 
 func TestConn_QueryContext(t *testing.T) {
@@ -317,7 +324,7 @@ func TestConn_QueryContext(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprint(w, "{}")
+				_, _ = fmt.Fprint(w, `<sparql><head></head><results></results></sparql>`)
 			},
 		))
 		client, err := sparql.New(server.URL)
@@ -338,13 +345,7 @@ func TestConn_QueryContext(t *testing.T) {
 			t.Errorf("Conn.QueryContext() error = %v", err)
 			return
 		}
-		want := driver.Rows(&Rows{
-			queryResult: &sparql.QueryResult{
-				Head:    sparql.Head{},
-				Results: sparql.Results{},
-			},
-		})
-		if !reflect.DeepEqual(got, want) {
+		if got, want := got.Columns(), []string{}; !reflect.DeepEqual(got, want) {
 			t.Errorf("Conn.QueryContext() = %+v, want %+v", got, want)
 		}
 	})
@@ -353,7 +354,7 @@ func TestConn_QueryContext(t *testing.T) {
 func TestConn_Ping(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "ok")
+			_, _ = fmt.Fprint(w, "ok")
 		},
 	))
 	client, err := sparql.New(server.URL)
@@ -387,7 +388,7 @@ func TestConn_Prepare(t *testing.T) {
 func TestConn_Close(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprint(w, "ok")
+			_, _ = fmt.Fprint(w, "ok")
 		},
 	))
 	client, err := sparql.New(server.URL)

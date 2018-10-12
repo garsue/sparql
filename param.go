@@ -22,13 +22,6 @@ type Serializable interface {
 	Serialize() string
 }
 
-// Literal http://www.w3.org/TR/2004/REC-rdf-concepts-20040210/#dfn-literal
-type Literal struct {
-	Value       interface{}
-	DataType    IRIRef
-	LanguageTag string
-}
-
 // Serialize returns the serialized literal string.
 func (l Literal) Serialize() string {
 	s := fmt.Sprint(l.Value)
