@@ -41,7 +41,10 @@ func ExampleClient_Query_simple() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%+v\n", result)
+	log.Println(result.Next())
+	if err := result.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func ExampleClient_Query_parameter() {
@@ -73,7 +76,10 @@ func ExampleClient_Query_parameter() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%+v\n", result)
+	log.Println(result.Next())
+	if err := result.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func ExampleClient_Query_iri_parameter() {
@@ -106,7 +112,10 @@ func ExampleClient_Query_iri_parameter() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%+v\n", result)
+	log.Println(result.Next())
+	if err := result.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func ExampleClient_Query_language_tag() {
@@ -141,7 +150,10 @@ func ExampleClient_Query_language_tag() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%+v\n", result)
+	log.Println(result.Next())
+	if err := result.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func ExampleClient_Query_typed_literal_with_iri() {
@@ -177,7 +189,10 @@ func ExampleClient_Query_typed_literal_with_iri() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%+v\n", result)
+	log.Println(result.Next())
+	if err := result.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func ExampleClient_Query_typed_literal_prefixed_name() {
@@ -212,7 +227,10 @@ func ExampleClient_Query_typed_literal_prefixed_name() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%+v\n", result)
+	log.Println(result.Next())
+	if err := result.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func ExampleClient_Query_parameterized_subject_and_object() {
@@ -246,7 +264,10 @@ func ExampleClient_Query_parameterized_subject_and_object() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%+v\n", result)
+	log.Println(result.Next())
+	if err := result.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func ExampleClient_Query_ask() {
@@ -274,7 +295,10 @@ func ExampleClient_Query_ask() {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("%+v\n", result)
+	log.Println(result.Boolean())
+	if err := result.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func TestClient_Query(t *testing.T) {
