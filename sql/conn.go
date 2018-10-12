@@ -34,15 +34,13 @@ func (r *Rows) Close() error {
 func (r *Rows) Next(dest []driver.Value) error {
 	// See Boolean field if the query is ASK (not SELECT)
 	variables := r.queryResult.Variables()
-	if len(variables) == 0 {
-		for i := range dest {
-			b, err := r.queryResult.Boolean()
-			if err != nil {
-				return err
-			}
-			dest[i] = b
-			return nil
+	if len(variables) == 0 && len(dest) > 0 {
+		b, err := r.queryResult.Boolean()
+		if err != nil {
+			return err
 		}
+		dest[0] = b
+		return nil
 	}
 
 	bindings, err := r.queryResult.Next()

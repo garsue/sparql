@@ -72,29 +72,38 @@ func DecodeXMLQueryResult(r io.ReadCloser) (QueryResult, error) {
 	}, nil
 }
 
-func decodeVariables(d *xml.Decoder) ([]string, error) {
-	var head struct {
-		Variables []struct {
-			Name string `xml:"name,attr"`
-		} `xml:"variable"`
+type head struct {
+	Variables []struct {
+		Name string `xml:"name,attr"`
+	} `xml:"variable"`
+}
+
+func decodeVariables(decoder *xml.Decoder) ([]string, error) {
+	h, err := decodeHead(decoder)
+	if err != nil {
+		return nil, err
 	}
-	for {
-		token, err := d.Token()
-		if err != nil {
-			return nil, err
-		}
-		if t, ok := token.(xml.StartElement); ok && t.Name.Local == "head" {
-			if err := d.DecodeElement(&head, &t); err != nil {
-				return nil, err
-			}
-			break
-		}
-	}
-	vs := make([]string, 0, len(head.Variables))
-	for _, v := range head.Variables {
+	vs := make([]string, 0, len(h.Variables))
+	for _, v := range h.Variables {
 		vs = append(vs, v.Name)
 	}
 	return vs, nil
+}
+
+func decodeHead(decoder *xml.Decoder) (head, error) {
+	for {
+		t, err := startElement(decoder)
+		if err != nil {
+			return head{}, err
+		}
+		if t.Name.Local == "head" {
+			var h head
+			if err := decoder.DecodeElement(&h, &t); err != nil {
+				return head{}, err
+			}
+			return h, nil
+		}
+	}
 }
 
 // Variables returns query variables.
@@ -104,11 +113,11 @@ func (x *XMLQueryResult) Variables() []string {
 
 func (x *XMLQueryResult) Next() (map[string]Value, error) {
 	for {
-		token, err := x.decoder.Token()
+		t, err := startElement(x.decoder)
 		if err != nil {
 			return nil, err
 		}
-		if t, ok := token.(xml.StartElement); ok && t.Name.Local == "result" {
+		if t.Name.Local == "result" {
 			return decodeResult(x.decoder, len(x.variables))
 		}
 	}
@@ -139,54 +148,65 @@ func decodeResult(decoder *xml.Decoder, size int) (map[string]Value, error) {
 }
 
 func decodeBinding(decoder *xml.Decoder, token *xml.StartElement) (string, Value, error) {
-	var name string
-	for _, attr := range token.Attr {
-		if attr.Name.Local == "name" {
-			name = attr.Value
-			break
-		}
+	name := nameAttr(token)
+	se, err := startElement(decoder)
+	if err != nil {
+		return "", nil, err
 	}
-	for {
-		token, err := decoder.Token()
-		if err != nil {
+	switch se.Name.Local {
+	case "uri":
+		var uri URI
+		if err := decoder.DecodeElement(&uri, &se); err != nil {
 			return "", nil, err
 		}
-		switch token := token.(type) {
-		case xml.StartElement:
-			switch token.Name.Local {
-			case "uri":
-				var uri URI
-				if err := decoder.DecodeElement(&uri, &token); err != nil {
-					return "", nil, err
-				}
-				return name, uri, nil
-			case "literal":
-				var literal Literal
-				if err := decoder.DecodeElement(&literal, &token); err != nil {
-					return "", nil, err
-				}
-				return name, literal, nil
-			case "bnode":
-				var bnode BNode
-				if err := decoder.DecodeElement(&bnode, &token); err != nil {
-					return "", nil, err
-				}
-				return name, bnode, nil
-			default:
-				return "", nil, fmt.Errorf("unknown binding %v", token.Name.Local)
-			}
+		return name, uri, nil
+	case "literal":
+		var literal Literal
+		if err := decoder.DecodeElement(&literal, &se); err != nil {
+			return "", nil, err
+		}
+		return name, literal, nil
+	case "bnode":
+		var bnode BNode
+		if err := decoder.DecodeElement(&bnode, &se); err != nil {
+			return "", nil, err
+		}
+		return name, bnode, nil
+	default:
+		return "", nil, fmt.Errorf("unknown binding %v", se.Name.Local)
+	}
+}
+
+func nameAttr(token *xml.StartElement) string {
+	for _, attr := range token.Attr {
+		if attr.Name.Local == "name" {
+			return attr.Value
+		}
+	}
+	return ""
+}
+
+func startElement(r xml.TokenReader) (xml.StartElement, error) {
+	for {
+		token, err := r.Token()
+		if err != nil {
+			return xml.StartElement{}, err
+		}
+		se, ok := token.(xml.StartElement)
+		if ok {
+			return se, nil
 		}
 	}
 }
 
 func (x *XMLQueryResult) Boolean() (bool, error) {
-	var boolean bool
 	for {
-		token, err := x.decoder.Token()
+		t, err := startElement(x.decoder)
 		if err != nil {
 			return false, err
 		}
-		if t, ok := token.(xml.StartElement); ok && t.Name.Local == "boolean" {
+		if t.Name.Local == "boolean" {
+			var boolean bool
 			if err := x.decoder.DecodeElement(&boolean, &t); err != nil {
 				return false, err
 			}

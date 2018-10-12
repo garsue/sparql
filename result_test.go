@@ -96,6 +96,7 @@ func TestXMLQueryResult_Next(t *testing.T) {
 	})
 }
 
+//nolint:gocyclo
 func Test_decodeResult(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		decoder := xml.NewDecoder(strings.NewReader(`<result></result>`))
@@ -106,7 +107,7 @@ func Test_decodeResult(t *testing.T) {
 		if err != nil {
 			t.Errorf("decodeResult() error = %v", err)
 		}
-		want := make(map[string]Value, 0)
+		want := make(map[string]Value)
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("decodeResult() = %v, want %v", got, want)
 		}
@@ -166,6 +167,7 @@ func Test_decodeResult(t *testing.T) {
 	})
 }
 
+//nolint:dupl,gocyclo,errcheck
 func Test_decodeBinding(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		decoder := xml.NewDecoder(strings.NewReader(`<binding name="x"></binding>`))
