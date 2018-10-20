@@ -78,6 +78,17 @@ func (c *Conn) QueryContext(
 	query string,
 	args []driver.NamedValue,
 ) (driver.Rows, error) {
+	result, err := c.Client.Query(ctx, query, argsToParams(args)...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Rows{
+		queryResult: result,
+	}, nil
+}
+
+func argsToParams(args []driver.NamedValue) []sparql.Param {
 	params := make([]sparql.Param, 0, len(args))
 	for _, a := range args {
 		params = append(params, sparql.Param{
@@ -85,15 +96,7 @@ func (c *Conn) QueryContext(
 			Value:   a.Value.(interface{}),
 		})
 	}
-
-	result, err := c.Client.Query(ctx, query, params...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Rows{
-		queryResult: result,
-	}, err
+	return params
 }
 
 // Ping sends a HTTP HEAD request to the source.
@@ -103,7 +106,9 @@ func (c *Conn) Ping(ctx context.Context) error {
 
 // Prepare returns a prepared statement.
 func (c *Conn) Prepare(query string) (driver.Stmt, error) {
-	panic("implement me")
+	return &Stmt{
+		Statement: c.Client.Prepare(query),
+	}, nil
 }
 
 // Close closes this connection but nothing to do.
