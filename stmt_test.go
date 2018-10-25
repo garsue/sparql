@@ -1,4 +1,4 @@
-package driver
+package sparql
 
 import (
 	"context"
@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/garsue/sparql"
 )
 
+//noinspection ALL
 func TestStmt_QueryContext(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		db := sql.OpenDB(NewConnector(&Driver{}, "foo"))
@@ -51,7 +50,7 @@ func TestStmt_Close(t *testing.T) {
 
 func TestStmt_NumInput(t *testing.T) {
 	s := Stmt{
-		Statement: &sparql.Statement{},
+		Statement: &Statement{},
 	}
 	if got := s.NumInput(); got != -1 {
 		t.Errorf("Stmt.NumInput() = %v, want -1", got)

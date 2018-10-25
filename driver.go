@@ -1,4 +1,4 @@
-package driver
+package sparql
 
 import (
 	"context"
