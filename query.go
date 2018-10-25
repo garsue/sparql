@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -15,17 +16,46 @@ func (c *Client) Query(
 	query string,
 	params ...Param,
 ) (QueryResult, error) {
-	request, err := c.request(ctx, query, params...)
+	return c.Prepare(query).Query(ctx, params...)
+}
+
+// Statement is prepared statement.
+type Statement struct {
+	c      *Client
+	query  string
+	prefix string
+}
+
+// Prepare returns `*sparql.Statement`.
+func (c *Client) Prepare(query string) *Statement {
+	// Prepare PREFIX
+	ss := make([]string, 0, len(c.prefixes)*5)
+	for prefix, uri := range c.prefixes {
+		ss = append(ss, "PREFIX ")
+		ss = append(ss, prefix)
+		ss = append(ss, ": ")
+		ss = append(ss, uri.Ref())
+		ss = append(ss, "\n")
+	}
+	return &Statement{c: c, prefix: strings.Join(ss, ""), query: query}
+}
+
+// Query queries to the endpoint.
+func (s *Statement) Query(
+	ctx context.Context,
+	params ...Param,
+) (QueryResult, error) {
+	request, err := s.request(ctx, params...)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := c.HTTPClient.Do(request)
+	resp, err := s.c.HTTPClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
-	defer c.Logger.LogCloseError(resp.Body)
-	c.Logger.Debug.Printf("%+v\n", resp)
+	defer s.c.Logger.LogCloseError(resp.Body)
+	s.c.Logger.Debug.Printf("%+v\n", resp)
 
 	if resp.StatusCode != http.StatusOK {
 		scanner := bufio.NewScanner(resp.Body)
@@ -43,12 +73,8 @@ func (c *Client) Query(
 	return DecodeXMLQueryResult(resp.Body)
 }
 
-func (c *Client) request(
-	ctx context.Context,
-	query string,
-	params ...Param,
-) (*http.Request, error) {
-	request, err := http.NewRequest(http.MethodGet, c.Endpoint, nil)
+func (s *Statement) request(ctx context.Context, params ...Param) (*http.Request, error) {
+	request, err := http.NewRequest(http.MethodGet, s.c.Endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -57,25 +83,25 @@ func (c *Client) request(
 	const defaultBufferSize = 1024
 	b := bytes.NewBuffer(make([]byte, 0, defaultBufferSize))
 
-	// Prepend PREFIX
-	for prefix, uri := range c.prefixes {
-		if _, err := b.WriteString("PREFIX "); err != nil {
-			return nil, err
-		}
-		if _, err := b.WriteString(prefix); err != nil {
-			return nil, err
-		}
-		if _, err := b.WriteString(": "); err != nil {
-			return nil, err
-		}
-		if _, err := b.WriteString(uri.Ref()); err != nil {
-			return nil, err
-		}
-		if _, err := b.WriteString("\n"); err != nil {
-			return nil, err
-		}
+	if err := s.compose(b, params...); err != nil {
+		return nil, err
 	}
 
+	// Build the query
+	built := b.String()
+	s.c.Logger.Debug.Println(built)
+	url := request.URL.Query()
+	url.Set("query", built)
+	url.Set("format", "application/sparql-results+xml")
+	request.URL.RawQuery = url.Encode()
+	return request, nil
+}
+
+func (s *Statement) compose(writer io.Writer, params ...Param) error {
+	// Write prefix
+	if _, err := writer.Write([]byte(s.prefix)); err != nil {
+		return err
+	}
 	// Replace parameters
 	replacePairs := make([]string, 0, 2*len(params))
 	for _, arg := range params {
@@ -85,18 +111,7 @@ func (c *Client) request(
 			arg.Serialize(),
 		)
 	}
-	if _, err2 := b.WriteString(strings.
-		NewReplacer(replacePairs...).
-		Replace(query)); err2 != nil {
-		return nil, err2
-	}
 
-	// Build the query
-	built := b.String()
-	c.Logger.Debug.Println(built)
-	url := request.URL.Query()
-	url.Set("query", built)
-	url.Set("format", "application/sparql-results+xml")
-	request.URL.RawQuery = url.Encode()
-	return request, nil
+	_, err := strings.NewReplacer(replacePairs...).WriteString(writer, s.query)
+	return err
 }

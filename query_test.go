@@ -329,10 +329,10 @@ func TestClient_Query(t *testing.T) {
 			return
 		}
 	})
-	t.Run("not json", func(t *testing.T) {
+	t.Run("malformed", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
-				_, _ = fmt.Fprint(w, "not json")
+				_, _ = fmt.Fprint(w, "malformed")
 			},
 		))
 
@@ -394,6 +394,126 @@ func TestClient_Query(t *testing.T) {
 		}
 	})
 }
+func TestClient_Prepare(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		var c Client
+		want := &Statement{
+			c: &c,
+		}
+		if got := c.Prepare(""); !reflect.DeepEqual(got, want) {
+			t.Errorf("Client.Prepare() = %+v, want %+v", got, want)
+		}
+	})
+	t.Run("success", func(t *testing.T) {
+		c := Client{
+			prefixes: map[string]URI{
+				"foo": URI("http://example.com"),
+			},
+		}
+		want := &Statement{
+			c:      &c,
+			query:  "query",
+			prefix: "PREFIX foo: <http://example.com>\n",
+		}
+		if got := c.Prepare("query"); !reflect.DeepEqual(got, want) {
+			t.Errorf("Client.Prepare() = %+v, want %+v", got, want)
+		}
+	})
+}
+
+func TestStatement_Query(t *testing.T) {
+	t.Run("request error", func(t *testing.T) {
+		c, err := New("foo")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if _, err := c.Prepare("").Query(context.Background()); err == nil {
+			t.Errorf("Statement.Query() error = %v", err)
+		}
+	})
+	t.Run("not ok", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "", http.StatusBadRequest)
+			},
+		))
+
+		c := &Client{
+			HTTPClient: *server.Client(),
+			Logger:     *logger.New(),
+			Endpoint:   server.URL,
+		}
+		if _, err := c.Prepare("").Query(context.Background()); err == nil {
+			t.Errorf("Statement.Query() error = %v", err)
+			return
+		}
+	})
+	t.Run("malformed", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				_, _ = fmt.Fprint(w, "malformed")
+			},
+		))
+
+		c := &Client{
+			HTTPClient: *server.Client(),
+			Logger:     *logger.New(),
+			Endpoint:   server.URL,
+		}
+		if _, err := c.Prepare("").Query(context.Background()); err == nil {
+			t.Errorf("Statement.Query() error = %v", err)
+			return
+		}
+	})
+	t.Run("success", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				_, _ = fmt.Fprint(w, `<?xml version="1.0"?>
+<sparql xmlns="http://www.w3.org/2005/sparql-results#">
+  <head>
+    <variable name="x"/>
+  </head>
+  <results>
+    <result> 
+      <binding name="x"><bnode>r2</bnode></binding>
+    </result>
+  </results>
+</sparql>`)
+			},
+		))
+
+		c := &Client{
+			HTTPClient: *server.Client(),
+			Logger:     *logger.New(),
+			Endpoint:   server.URL,
+			prefixes:   map[string]URI{"foo": "bar"},
+		}
+		result, err := c.Prepare("").Query(context.Background(), Param{
+			Ordinal: 0,
+			Value:   1,
+		})
+		if err != nil {
+			t.Errorf("Statement.Query() error = %v", err)
+			return
+		}
+		if got, want := result.Variables(), []string{"x"}; !reflect.DeepEqual(got, want) {
+			t.Errorf("result.Variables() = %v, want %v", got, want)
+		}
+		bindings, err := result.Next()
+		if err != nil {
+			t.Errorf("iter.Next() error = %v", err)
+			return
+		}
+		if want := map[string]Value{"x": BNode("r2")}; !reflect.DeepEqual(bindings, want) {
+			t.Errorf("Statement.Query() = %v, want %v", bindings, want)
+		}
+		if _, err = result.Next(); err != io.EOF {
+			t.Errorf("iter.Next() error = %v", err)
+			return
+		}
+	})
+}
 
 func BenchmarkClient_request(b *testing.B) {
 	b.Run("query", func(b *testing.B) {
@@ -409,7 +529,7 @@ func BenchmarkClient_request(b *testing.B) {
 		ctx := context.Background()
 		query := strings.Join(qs, ",")
 		b.ResetTimer()
-		if _, err := client.request(ctx, query); err != nil {
+		if _, err := client.Prepare(query).request(ctx); err != nil {
 			b.Fatal(err)
 		}
 	})
@@ -428,7 +548,7 @@ func BenchmarkClient_request(b *testing.B) {
 
 		ctx := context.Background()
 		b.ResetTimer()
-		if _, err := client.request(ctx, "", params...); err != nil {
+		if _, err := client.Prepare("").request(ctx, params...); err != nil {
 			b.Fatal(err)
 		}
 	})

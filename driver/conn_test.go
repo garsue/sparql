@@ -371,11 +371,6 @@ func TestConn_Ping(t *testing.T) {
 }
 
 func TestConn_Prepare(t *testing.T) {
-	defer func() {
-		if err := recover(); err == nil {
-			t.Error("got nil want error")
-		}
-	}()
 	c := &Conn{
 		Client: &sparql.Client{},
 	}
