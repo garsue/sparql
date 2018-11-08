@@ -1,4 +1,4 @@
-package driver
+package sparql
 
 import (
 	"context"
@@ -12,8 +12,6 @@ import (
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/garsue/sparql"
 )
 
 func ExampleConn_QueryContext() {
@@ -37,7 +35,7 @@ func ExampleConn_QueryContext() {
 	}
 
 	for rows.Next() {
-		var p, o sparql.URI
+		var p, o URI
 		if err := rows.Scan(&p, &o); err != nil {
 			panic(err)
 		}
@@ -68,11 +66,11 @@ func ExampleConn_QueryContext_hojin_info() {
 	db := sql.OpenDB(NewConnector(
 		nil,
 		"https://api.hojin-info.go.jp/sparql",
-		sparql.Timeout(5*time.Second),
-		sparql.MaxIdleConns(0),
-		sparql.IdleConnTimeout(0),
-		sparql.Prefix("hj", "http://hojin-info.go.jp/ns/domain/biz/1#"),
-		sparql.Prefix("ic", "http://imi.go.jp/ns/core/rdf#"),
+		Timeout(5*time.Second),
+		MaxIdleConns(0),
+		IdleConnTimeout(0),
+		Prefix("hj", "http://hojin-info.go.jp/ns/domain/biz/1#"),
+		Prefix("ic", "http://imi.go.jp/ns/core/rdf#"),
 	))
 
 	ctx := context.Background()
@@ -111,7 +109,7 @@ func ExampleConn_QueryContext_hojin_info() {
 type mockQueryResult struct {
 	variables []string
 	boolean   bool
-	result    map[string]sparql.Value
+	result    map[string]Value
 	err       error
 }
 
@@ -119,7 +117,7 @@ func (m *mockQueryResult) Variables() []string {
 	return m.variables
 }
 
-func (m *mockQueryResult) Next() (map[string]sparql.Value, error) {
+func (m *mockQueryResult) Next() (map[string]Value, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -194,8 +192,8 @@ func TestRows_Next(t *testing.T) {
 		r := &Rows{
 			queryResult: &mockQueryResult{
 				variables: []string{"foo"},
-				result: map[string]sparql.Value{
-					"foo": sparql.Literal{Value: "1"},
+				result: map[string]Value{
+					"foo": Literal{Value: "1"},
 				},
 			},
 		}
@@ -225,7 +223,7 @@ func TestRows_Next(t *testing.T) {
 
 func Test_scan(t *testing.T) {
 	type args struct {
-		b sparql.Value
+		b Value
 	}
 	tests := []struct {
 		name string
@@ -235,15 +233,15 @@ func Test_scan(t *testing.T) {
 		{
 			name: "uri",
 			args: args{
-				b: sparql.URI("http://www.w3.org/2001/XMLSchema#foo"),
+				b: URI("http://www.w3.org/2001/XMLSchema#foo"),
 			},
-			want: sparql.URI("http://www.w3.org/2001/XMLSchema#foo"),
+			want: URI("http://www.w3.org/2001/XMLSchema#foo"),
 		},
 		{
 			name: "literal",
 			args: args{
-				b: sparql.Literal{
-					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#integer"),
+				b: Literal{
+					DataType: URI("http://www.w3.org/2001/XMLSchema#integer"),
 					Value:    "1",
 				},
 			},
@@ -252,8 +250,8 @@ func Test_scan(t *testing.T) {
 		{
 			name: "without timezone",
 			args: args{
-				b: sparql.Literal{
-					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"),
+				b: Literal{
+					DataType: URI("http://www.w3.org/2001/XMLSchema#dateTime"),
 					Value:    "2015-11-19T00:10:11",
 				},
 			},
@@ -264,8 +262,8 @@ func Test_scan(t *testing.T) {
 		{
 			name: "with timezone",
 			args: args{
-				b: sparql.Literal{
-					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"),
+				b: Literal{
+					DataType: URI("http://www.w3.org/2001/XMLSchema#dateTime"),
 					Value:    "2015-11-19T09:10:11+09:00",
 				},
 			},
@@ -276,8 +274,8 @@ func Test_scan(t *testing.T) {
 		{
 			name: "UTC",
 			args: args{
-				b: sparql.Literal{
-					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"),
+				b: Literal{
+					DataType: URI("http://www.w3.org/2001/XMLSchema#dateTime"),
 					Value:    "2015-11-19T00:10:11Z",
 				},
 			},
@@ -288,8 +286,8 @@ func Test_scan(t *testing.T) {
 		{
 			name: "nano",
 			args: args{
-				b: sparql.Literal{
-					DataType: sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"),
+				b: Literal{
+					DataType: URI("http://www.w3.org/2001/XMLSchema#dateTime"),
 					Value:    "2015-11-19T00:10:11.12345",
 				},
 			},
@@ -309,7 +307,7 @@ func Test_scan(t *testing.T) {
 
 func TestConn_QueryContext(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
-		client, err := sparql.New("foo")
+		client, err := New("foo")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -327,7 +325,7 @@ func TestConn_QueryContext(t *testing.T) {
 				_, _ = fmt.Fprint(w, `<sparql><head></head><results></results></sparql>`)
 			},
 		))
-		client, err := sparql.New(server.URL)
+		client, err := New(server.URL)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -357,7 +355,7 @@ func TestConn_Ping(t *testing.T) {
 			_, _ = fmt.Fprint(w, "ok")
 		},
 	))
-	client, err := sparql.New(server.URL)
+	client, err := New(server.URL)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -372,7 +370,7 @@ func TestConn_Ping(t *testing.T) {
 
 func TestConn_Prepare(t *testing.T) {
 	c := &Conn{
-		Client: &sparql.Client{},
+		Client: &Client{},
 	}
 	if _, err := c.Prepare(""); err != nil {
 		t.Errorf("Conn.Prepare() error = %v", err)
@@ -386,7 +384,7 @@ func TestConn_Close(t *testing.T) {
 			_, _ = fmt.Fprint(w, "ok")
 		},
 	))
-	client, err := sparql.New(server.URL)
+	client, err := New(server.URL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -405,7 +403,7 @@ func TestConn_Begin(t *testing.T) {
 		}
 	}()
 	c := &Conn{
-		Client: &sparql.Client{},
+		Client: &Client{},
 	}
 	if _, err := c.Begin(); err != nil {
 		t.Errorf("Conn.Begin() error = %v", err)

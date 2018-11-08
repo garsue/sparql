@@ -1,22 +1,20 @@
-package driver
+package sparql
 
 import (
 	"context"
 	"database/sql/driver"
 	"fmt"
 	"time"
-
-	"github.com/garsue/sparql"
 )
 
 // Conn connects to a SPARQL source.
 type Conn struct {
-	Client *sparql.Client
+	Client *Client
 }
 
 // Rows implements `driver.Rows` with `sparql.QueryResult`.
 type Rows struct {
-	queryResult sparql.QueryResult
+	queryResult QueryResult
 }
 
 // Columns returns the names of the columns.
@@ -53,10 +51,10 @@ func (r *Rows) Next(dest []driver.Value) error {
 	return nil
 }
 
-func scan(b sparql.Value) driver.Value {
-	if b, ok := b.(sparql.Literal); ok {
+func scan(b Value) driver.Value {
+	if b, ok := b.(Literal); ok {
 		switch b.DataType {
-		case sparql.URI("http://www.w3.org/2001/XMLSchema#dateTime"):
+		case URI("http://www.w3.org/2001/XMLSchema#dateTime"):
 			for _, f := range []string{
 				"2006-01-02T15:04:05.999999999",
 				time.RFC3339Nano,
@@ -88,10 +86,10 @@ func (c *Conn) QueryContext(
 	}, nil
 }
 
-func argsToParams(args []driver.NamedValue) []sparql.Param {
-	params := make([]sparql.Param, 0, len(args))
+func argsToParams(args []driver.NamedValue) []Param {
+	params := make([]Param, 0, len(args))
 	for _, a := range args {
-		params = append(params, sparql.Param{
+		params = append(params, Param{
 			Ordinal: a.Ordinal,
 			Value:   a.Value.(interface{}),
 		})
