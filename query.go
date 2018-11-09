@@ -104,12 +104,11 @@ func (s *Statement) compose(writer io.Writer, params ...Param) error {
 	}
 	// Replace parameters
 	replacePairs := make([]string, 0, 2*len(params))
-	for _, arg := range params {
-		replacePairs = append(
-			replacePairs,
-			fmt.Sprintf("$%d", arg.Ordinal),
-			arg.Serialize(),
-		)
+	for _, p := range params {
+		v := p.Serialize()
+		for _, key := range p.Placeholders() {
+			replacePairs = append(replacePairs, key, v)
+		}
 	}
 
 	_, err := strings.NewReplacer(replacePairs...).WriteString(writer, s.query)

@@ -90,6 +90,7 @@ func argsToParams(args []driver.NamedValue) []Param {
 	params := make([]Param, 0, len(args))
 	for _, a := range args {
 		params = append(params, Param{
+			Name:    a.Name,
 			Ordinal: a.Ordinal,
 			Value:   a.Value.(interface{}),
 		})

@@ -1,6 +1,7 @@
 package sparql
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -552,4 +553,91 @@ func BenchmarkClient_request(b *testing.B) {
 			b.Fatal(err)
 		}
 	})
+}
+
+// nolint: scopelint
+func TestStatement_compose(t *testing.T) {
+	type fields struct {
+		c      *Client
+		query  string
+		prefix string
+	}
+	type args struct {
+		params []Param
+	}
+	tests := []struct {
+		name       string
+		fields     fields
+		args       args
+		wantWriter string
+		wantErr    bool
+	}{
+		{
+			name: "no params",
+			fields: fields{
+				prefix: "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n",
+				query:  "SELECT ?name ?mbox WHERE { ?x foaf:name ?name . ?x foaf:mbox ?mbox }",
+			},
+			args: args{},
+			wantWriter: `PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT ?name ?mbox WHERE { ?x foaf:name ?name . ?x foaf:mbox ?mbox }`,
+			wantErr: false,
+		},
+		{
+			name: "ordinal params",
+			fields: fields{
+				prefix: "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n",
+				query:  "SELECT $1 ?mbox WHERE { ?x foaf:name $1 . ?x foaf:mbox ?mbox }",
+			},
+			args: args{
+				params: []Param{{Ordinal: 1, Value: "Bob"}},
+			},
+			wantWriter: `PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT """Bob""" ?mbox WHERE { ?x foaf:name """Bob""" . ?x foaf:mbox ?mbox }`,
+			wantErr: false,
+		},
+		{
+			name: "named params",
+			fields: fields{
+				prefix: "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n",
+				query:  "SELECT @name ?mbox WHERE { ?x foaf:name @name . ?x foaf:mbox ?mbox }",
+			},
+			args: args{
+				params: []Param{{Name: "name", Ordinal: 1, Value: "Bob"}},
+			},
+			wantWriter: `PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT """Bob""" ?mbox WHERE { ?x foaf:name """Bob""" . ?x foaf:mbox ?mbox }`,
+			wantErr: false,
+		},
+		{
+			name: "ordinal/named params",
+			fields: fields{
+				prefix: "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n",
+				query:  "SELECT @name ?mbox WHERE { ?x foaf:name $1 . ?x foaf:mbox ?mbox }",
+			},
+			args: args{
+				params: []Param{{Name: "name", Ordinal: 1, Value: "Bob"}},
+			},
+			wantWriter: `PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT """Bob""" ?mbox WHERE { ?x foaf:name """Bob""" . ?x foaf:mbox ?mbox }`,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Statement{
+				c:      tt.fields.c,
+				query:  tt.fields.query,
+				prefix: tt.fields.prefix,
+			}
+			writer := &bytes.Buffer{}
+			if err := s.compose(writer, tt.args.params...); (err != nil) != tt.wantErr {
+				t.Errorf("Statement.compose() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotWriter := writer.String(); gotWriter != tt.wantWriter {
+				t.Errorf("Statement.compose() = %v, want %v", gotWriter, tt.wantWriter)
+			}
+		})
+	}
 }

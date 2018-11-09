@@ -9,12 +9,30 @@ import (
 
 const dateTimeFormat = `"2006-01-02T15:04:05Z07:00"^^xsd:dateTime`
 
-// Param is a parameter to fill placeholders
+// Param is a parameter to fill placeholders.
 type Param struct {
+	// If the Name is not empty it should be used for the parameter identifier and
+	// not the ordinal position.
+	//
+	// Name will not have a symbol prefix.
+	Name string
 	// Ordinal position of the parameter starting from one and is always set.
 	Ordinal int
 	// Value is the parameter value.
 	Value interface{}
+}
+
+// Placeholders returns matching placeholder strings.
+func (p Param) Placeholders() []string {
+	if p.Name != "" {
+		return []string{
+			"@" + p.Name,
+			fmt.Sprintf("$%d", p.Ordinal),
+		}
+	}
+	return []string{
+		fmt.Sprintf("$%d", p.Ordinal),
+	}
 }
 
 // Serializable serialize data to embed to queries.
