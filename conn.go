@@ -52,22 +52,22 @@ func (r *Rows) Next(dest []driver.Value) error {
 }
 
 func scan(b Value) driver.Value {
-	if b, ok := b.(Literal); ok {
-		switch b.DataType {
-		case URI("http://www.w3.org/2001/XMLSchema#dateTime"):
-			for _, f := range []string{
-				"2006-01-02T15:04:05.999999999",
-				time.RFC3339Nano,
-			} {
-				t, err := time.ParseInLocation(f, fmt.Sprint(b.Value), time.UTC)
-				if err == nil {
-					return t
-				}
+	literal, ok := b.(Literal)
+	if !ok {
+		return b
+	}
+	if literal.DataType == URI("http://www.w3.org/2001/XMLSchema#dateTime") {
+		for _, f := range []string{
+			"2006-01-02T15:04:05.999999999",
+			time.RFC3339Nano,
+		} {
+			t, err := time.ParseInLocation(f, fmt.Sprint(literal.Value), time.UTC)
+			if err == nil {
+				return t
 			}
 		}
-		return b.Value
 	}
-	return b
+	return literal.Value
 }
 
 // QueryContext queries to a SPARQL source.

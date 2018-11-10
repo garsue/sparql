@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// nolint: scopelint
 func TestLiteral_Serialize(t *testing.T) {
 	type fields struct {
 		Value       string
@@ -54,6 +55,7 @@ func TestLiteral_Serialize(t *testing.T) {
 	}
 }
 
+// nolint: scopelint
 func TestParam_Serialize(t *testing.T) {
 	type fields struct {
 		Ordinal int

@@ -221,6 +221,7 @@ func TestRows_Next(t *testing.T) {
 	})
 }
 
+// nolint: scopelint
 func Test_scan(t *testing.T) {
 	type args struct {
 		b Value

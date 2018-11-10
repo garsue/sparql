@@ -2,6 +2,7 @@ package sparql
 
 import "testing"
 
+// nolint: scopelint
 func TestIRI_Ref(t *testing.T) {
 	tests := []struct {
 		name string
