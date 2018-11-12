@@ -3,20 +3,22 @@ package sparql
 import (
 	"context"
 	"database/sql/driver"
+
+	"github.com/garsue/sparql/client"
 )
 
 // Connector generates `driver.Conn` with a context.
 type Connector struct {
 	driver  driver.Driver
 	Name    string
-	options []Option
+	options []client.Option
 }
 
 // NewConnector returns `driver.Connector`.
 func NewConnector(
 	driver driver.Driver,
 	name string,
-	opts ...Option,
+	opts ...client.Option,
 ) *Connector {
 	return &Connector{
 		driver:  driver,
@@ -27,13 +29,13 @@ func NewConnector(
 
 // Connect returns `driver.Conn` with a context.
 func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
-	client, err := New(c.Name, c.options...)
+	cli, err := client.New(c.Name, c.options...)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Conn{
-		Client: client,
+		Client: cli,
 	}, nil
 }
 

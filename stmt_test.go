@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/garsue/sparql/client"
 )
 
 //noinspection ALL
@@ -50,7 +52,7 @@ func TestStmt_Close(t *testing.T) {
 
 func TestStmt_NumInput(t *testing.T) {
 	s := Stmt{
-		Statement: &Statement{},
+		Statement: &client.Statement{},
 	}
 	if got := s.NumInput(); got != -1 {
 		t.Errorf("Stmt.NumInput() = %v, want -1", got)

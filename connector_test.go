@@ -6,10 +6,12 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/garsue/sparql/client"
 )
 
 func TestNewConnector(t *testing.T) {
-	opts := []Option{Timeout(30 * time.Second)}
+	opts := []client.Option{client.Timeout(30 * time.Second)}
 	want := &Connector{
 		driver:  nil,
 		Name:    "name",
@@ -25,8 +27,8 @@ func TestConnector_Connect(t *testing.T) {
 		c := &Connector{
 			driver: nil,
 			Name:   "name",
-			options: []Option{
-				func(*Client) error {
+			options: []client.Option{
+				func(*client.Client) error {
 					return errors.New("error")
 				},
 			},

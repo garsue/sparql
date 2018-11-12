@@ -1,4 +1,4 @@
-package sparql
+package client
 
 import (
 	"encoding/xml"

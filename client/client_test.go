@@ -1,4 +1,4 @@
-package sparql
+package client
 
 import (
 	"context"
@@ -154,7 +154,7 @@ func TestClient_Ping(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprint(w, "ok")
+				_, _ = fmt.Fprint(w, "ok")
 			}),
 		)
 		c, err := New(server.URL)
