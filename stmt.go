@@ -3,11 +3,13 @@ package sparql
 import (
 	"context"
 	"database/sql/driver"
+
+	"github.com/garsue/sparql/client"
 )
 
 // Stmt implements `driver.Stmt` with `sparql.Statement`.
 type Stmt struct {
-	*Statement
+	*client.Statement
 }
 
 // QueryContext queries to a SPARQL source.
