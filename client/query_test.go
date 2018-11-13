@@ -18,11 +18,16 @@ import (
 
 func ExampleClient_Query_simple() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
-		MaxIdleConns(100),
-		IdleConnTimeout(90*time.Second),
-		Timeout(30*time.Second),
-		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+		WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     90 * time.Second,
+			},
+			Timeout: 30 * time.Second,
+		}),
+		WithPrefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		WithPrefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -50,11 +55,16 @@ func ExampleClient_Query_simple() {
 
 func ExampleClient_Query_parameter() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
-		MaxIdleConns(100),
-		IdleConnTimeout(90*time.Second),
-		Timeout(30*time.Second),
-		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+		WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     90 * time.Second,
+			},
+			Timeout: 30 * time.Second,
+		}),
+		WithPrefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		WithPrefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -85,11 +95,16 @@ func ExampleClient_Query_parameter() {
 
 func ExampleClient_Query_uri_parameter() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
-		MaxIdleConns(100),
-		IdleConnTimeout(90*time.Second),
-		Timeout(30*time.Second),
-		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+		WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     90 * time.Second,
+			},
+			Timeout: 30 * time.Second,
+		}),
+		WithPrefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		WithPrefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -121,11 +136,16 @@ func ExampleClient_Query_uri_parameter() {
 
 func ExampleClient_Query_language_tag() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
-		MaxIdleConns(100),
-		IdleConnTimeout(90*time.Second),
-		Timeout(30*time.Second),
-		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+		WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     90 * time.Second,
+			},
+			Timeout: 30 * time.Second,
+		}),
+		WithPrefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		WithPrefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -159,11 +179,11 @@ func ExampleClient_Query_language_tag() {
 
 func ExampleClient_Query_typed_literal_with_uri() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
-		MaxIdleConns(100),
-		IdleConnTimeout(90*time.Second),
-		Timeout(30*time.Second),
-		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+		WithHTTPClient(&http.Client{
+			Timeout: 90 * time.Second,
+		}),
+		WithPrefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		WithPrefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -198,11 +218,16 @@ func ExampleClient_Query_typed_literal_with_uri() {
 
 func ExampleClient_Query_typed_literal_prefixed_name() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
-		MaxIdleConns(100),
-		IdleConnTimeout(90*time.Second),
-		Timeout(30*time.Second),
-		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+		WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     90 * time.Second,
+			},
+			Timeout: 30 * time.Second,
+		}),
+		WithPrefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		WithPrefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -236,11 +261,16 @@ func ExampleClient_Query_typed_literal_prefixed_name() {
 
 func ExampleClient_Query_parameterized_subject_and_object() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
-		MaxIdleConns(100),
-		IdleConnTimeout(90*time.Second),
-		Timeout(30*time.Second),
-		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+		WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     90 * time.Second,
+			},
+			Timeout: 30 * time.Second,
+		}),
+		WithPrefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		WithPrefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)
@@ -273,11 +303,16 @@ func ExampleClient_Query_parameterized_subject_and_object() {
 
 func ExampleClient_Query_ask() {
 	cli, err := New("http://ja.dbpedia.org/sparql",
-		MaxIdleConns(100),
-		IdleConnTimeout(90*time.Second),
-		Timeout(30*time.Second),
-		Prefix("dbpj", "http://ja.dbpedia.org/resource/"),
-		Prefix("dbp-owl", "http://dbpedia.org/ontology/"),
+		WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     90 * time.Second,
+			},
+			Timeout: 30 * time.Second,
+		}),
+		WithPrefix("dbpj", "http://ja.dbpedia.org/resource/"),
+		WithPrefix("dbp-owl", "http://dbpedia.org/ontology/"),
 	)
 	if err != nil {
 		panic(err)

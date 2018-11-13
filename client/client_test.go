@@ -10,64 +10,34 @@ import (
 	"time"
 )
 
-func TestTimeout(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		timeout := 30 * time.Second
-		client := Client{}
-		if err := Timeout(timeout)(&client); err != nil {
-			t.Error(err)
-			return
-		}
-		if got, want := client.dialer.Timeout, timeout; got != want {
-			t.Errorf("Timeout() = %v, want %v", got, want)
-		}
-		if got, want := client.dialer.KeepAlive, timeout; got != want {
-			t.Errorf("Timeout() = %v, want %v", got, want)
-		}
-	})
+func TestWithHTTPClient(t *testing.T) {
+	timeout := 30 * time.Second
+	httpClient := &http.Client{
+		Timeout: timeout,
+	}
+	client := Client{}
+	if err := WithHTTPClient(httpClient)(&client); err != nil {
+		t.Error(err)
+		return
+	}
+	if got, want := client.HTTPClient.Timeout, timeout; got != want {
+		t.Errorf("TestWithHTTPClient() = %v, want %v", got, want)
+	}
 }
 
-func TestMaxIdleConns(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		max := 100
-		client := Client{}
-		if err := MaxIdleConns(max)(&client); err != nil {
-			t.Error(err)
-			return
-		}
-		if got, want := client.transport.MaxIdleConns, max; got != want {
-			t.Errorf("MaxIdleConns() = %v, want %v", got, want)
-		}
-	})
-}
-
-func TestIdleConnTimeout(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		timeout := 30 * time.Second
-		client := Client{}
-		if err := IdleConnTimeout(timeout)(&client); err != nil {
-			t.Error(err)
-			return
-		}
-		if got, want := client.transport.IdleConnTimeout, timeout; got != want {
-			t.Errorf("IdleConnTimeout() = %v, want %v", got, want)
-		}
-	})
-}
-
-func TestPrefix(t *testing.T) {
+func TestWithPrefix(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		prefix := "dbpj"
 		uri := URI("http://ja.dbpedia.org/resource/")
 		client := Client{
 			prefixes: map[string]URI{},
 		}
-		if err := Prefix(prefix, uri)(&client); err != nil {
+		if err := WithPrefix(prefix, uri)(&client); err != nil {
 			t.Error(err)
 			return
 		}
 		if got, want := client.prefixes[prefix], uri; got != want {
-			t.Errorf("Prefix() = %v, want %v", got, want)
+			t.Errorf("WithPrefix() = %v, want %v", got, want)
 		}
 	})
 }
@@ -97,22 +67,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestClient_Close(t *testing.T) {
-	t.Run("already closed", func(t *testing.T) {
-		c := &Client{}
-		if err := c.Close(); err == nil {
-			t.Errorf("Client.Close() error = %v", err)
-		}
-	})
-	t.Run("unknown roundTripper", func(t *testing.T) {
-		c := &Client{
-			HTTPClient: http.Client{
-				Transport: http.NewFileTransport(nil),
-			},
-		}
-		if err := c.Close(); err == nil {
-			t.Errorf("Client.Close() error = %v", err)
-		}
-	})
 	t.Run("success", func(t *testing.T) {
 		c := &Client{
 			HTTPClient: http.Client{
