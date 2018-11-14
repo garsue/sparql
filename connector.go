@@ -16,12 +16,11 @@ type Connector struct {
 
 // NewConnector returns `driver.Connector`.
 func NewConnector(
-	driver driver.Driver,
 	name string,
 	opts ...client.Option,
 ) *Connector {
 	return &Connector{
-		driver:  driver,
+		driver:  &Driver{},
 		Name:    name,
 		options: opts,
 	}

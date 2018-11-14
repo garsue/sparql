@@ -2,17 +2,11 @@ package sparql
 
 import (
 	"context"
-	"database/sql"
 	"database/sql/driver"
 )
 
 // Driver accesses SPARQL sources.
 type Driver struct{}
-
-// nolint: gochecknoinits
-func init() {
-	sql.Register("sparql", &Driver{})
-}
 
 // Open returns `driver.Conn`.
 func (d *Driver) Open(name string) (driver.Conn, error) {
@@ -25,5 +19,7 @@ func (d *Driver) Open(name string) (driver.Conn, error) {
 
 // OpenConnector returns `driver.Connector`.
 func (d *Driver) OpenConnector(name string) (driver.Connector, error) {
-	return NewConnector(d, name), nil
+	connector := NewConnector(name)
+	connector.driver = d
+	return connector, nil
 }
