@@ -3,6 +3,7 @@ package sparql
 import (
 	"context"
 	"errors"
+	"net/http"
 	"reflect"
 	"testing"
 	"time"
@@ -11,7 +12,11 @@ import (
 )
 
 func TestNewConnector(t *testing.T) {
-	opts := []client.Option{client.Timeout(30 * time.Second)}
+	opts := []client.Option{
+		client.WithHTTPClient(&http.Client{
+			Timeout: 30 * time.Second,
+		}),
+	}
 	want := &Connector{
 		driver:  nil,
 		Name:    "name",

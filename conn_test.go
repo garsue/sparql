@@ -68,11 +68,11 @@ func ExampleConn_QueryContext_hojin_info() {
 	db := sql.OpenDB(NewConnector(
 		nil,
 		"https://api.hojin-info.go.jp/sparql",
-		client.Timeout(5*time.Second),
-		client.MaxIdleConns(0),
-		client.IdleConnTimeout(0),
-		client.Prefix("hj", "http://hojin-info.go.jp/ns/domain/biz/1#"),
-		client.Prefix("ic", "http://imi.go.jp/ns/core/rdf#"),
+		client.WithHTTPClient(&http.Client{
+			Timeout: 5 * time.Second,
+		}),
+		client.WithPrefix("hj", "http://hojin-info.go.jp/ns/domain/biz/1#"),
+		client.WithPrefix("ic", "http://imi.go.jp/ns/core/rdf#"),
 	))
 
 	ctx := context.Background()
