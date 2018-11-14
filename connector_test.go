@@ -18,7 +18,7 @@ func TestNewConnector(t *testing.T) {
 		}),
 	}
 	want := &Connector{
-		driver:  nil,
+		driver:  &Driver{},
 		Name:    "name",
 		options: opts,
 	}
