@@ -13,7 +13,7 @@ import (
 //noinspection ALL
 func TestStmt_QueryContext(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
-		db := sql.OpenDB(NewConnector(&Driver{}, "foo"))
+		db := sql.OpenDB(NewConnector("foo"))
 		defer db.Close()
 		stmt, err := db.Prepare("")
 		if err != nil {
@@ -29,7 +29,7 @@ func TestStmt_QueryContext(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, h *http.Request) {
 			_, _ = w.Write([]byte(`<sparql><head></head><results></results></sparql>`))
 		}))
-		db := sql.OpenDB(NewConnector(&Driver{}, server.URL))
+		db := sql.OpenDB(NewConnector(server.URL))
 		defer db.Close()
 		stmt, err := db.Prepare("")
 		if err != nil {

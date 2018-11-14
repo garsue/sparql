@@ -17,10 +17,7 @@ import (
 )
 
 func ExampleConn_QueryContext() {
-	db, err := sql.Open("sparql", "http://ja.dbpedia.org/sparql")
-	if err != nil {
-		panic(err)
-	}
+	db := sql.OpenDB(NewConnector("http://ja.dbpedia.org/sparql"))
 
 	ctx := context.Background()
 	if err2 := db.PingContext(ctx); err2 != nil {
@@ -66,7 +63,6 @@ func ExampleConn_QueryContext() {
 
 func ExampleConn_QueryContext_hojin_info() {
 	db := sql.OpenDB(NewConnector(
-		nil,
 		"https://api.hojin-info.go.jp/sparql",
 		client.WithHTTPClient(&http.Client{
 			Timeout: 5 * time.Second,

@@ -22,7 +22,7 @@ func TestNewConnector(t *testing.T) {
 		Name:    "name",
 		options: opts,
 	}
-	if got := NewConnector(nil, "name", opts...); !reflect.DeepEqual(got, want) {
+	if got := NewConnector("name", opts...); !reflect.DeepEqual(got, want) {
 		t.Errorf("NewConnector() = %+v, want %+v", got, want)
 	}
 }
