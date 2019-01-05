@@ -70,7 +70,7 @@ func (s *Statement) Query(
 		)
 	}
 
-	return DecodeXMLQueryResult(resp.Body)
+	return s.c.resultParser.Parse(resp.Body)
 }
 
 func (s *Statement) request(ctx context.Context, params ...Param) (*http.Request, error) {
@@ -92,7 +92,7 @@ func (s *Statement) request(ctx context.Context, params ...Param) (*http.Request
 	s.c.Logger.Debug.Println(built)
 	url := request.URL.Query()
 	url.Set("query", built)
-	url.Set("format", "application/sparql-results+xml")
+	url.Set("format", s.c.resultParser.Format())
 	request.URL.RawQuery = url.Encode()
 	return request, nil
 }

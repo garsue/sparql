@@ -356,9 +356,10 @@ func TestClient_Query(t *testing.T) {
 		))
 
 		c := &Client{
-			HTTPClient: *server.Client(),
-			Logger:     *logger.New(),
-			Endpoint:   server.URL,
+			HTTPClient:   *server.Client(),
+			Logger:       *logger.New(),
+			Endpoint:     server.URL,
+			resultParser: NewXMLResultParser(),
 		}
 		if _, err := c.Query(context.Background(), ""); err == nil {
 			t.Errorf("Client.Query() error = %v", err)
@@ -373,9 +374,10 @@ func TestClient_Query(t *testing.T) {
 		))
 
 		c := &Client{
-			HTTPClient: *server.Client(),
-			Logger:     *logger.New(),
-			Endpoint:   server.URL,
+			HTTPClient:   *server.Client(),
+			Logger:       *logger.New(),
+			Endpoint:     server.URL,
+			resultParser: NewXMLResultParser(),
 		}
 		if _, err := c.Query(context.Background(), ""); err == nil {
 			t.Errorf("Client.Query() error = %v", err)
@@ -400,10 +402,11 @@ func TestClient_Query(t *testing.T) {
 		))
 
 		c := &Client{
-			HTTPClient: *server.Client(),
-			Logger:     *logger.New(),
-			Endpoint:   server.URL,
-			prefixes:   map[string]URI{"foo": "bar"},
+			HTTPClient:   *server.Client(),
+			Logger:       *logger.New(),
+			Endpoint:     server.URL,
+			prefixes:     map[string]URI{"foo": "bar"},
+			resultParser: NewXMLResultParser(),
 		}
 		result, err := c.Query(context.Background(), "", Param{
 			Ordinal: 0,
@@ -476,9 +479,10 @@ func TestStatement_Query(t *testing.T) {
 		))
 
 		c := &Client{
-			HTTPClient: *server.Client(),
-			Logger:     *logger.New(),
-			Endpoint:   server.URL,
+			HTTPClient:   *server.Client(),
+			Logger:       *logger.New(),
+			Endpoint:     server.URL,
+			resultParser: NewXMLResultParser(),
 		}
 		if _, err := c.Prepare("").Query(context.Background()); err == nil {
 			t.Errorf("Statement.Query() error = %v", err)
@@ -493,9 +497,10 @@ func TestStatement_Query(t *testing.T) {
 		))
 
 		c := &Client{
-			HTTPClient: *server.Client(),
-			Logger:     *logger.New(),
-			Endpoint:   server.URL,
+			HTTPClient:   *server.Client(),
+			Logger:       *logger.New(),
+			Endpoint:     server.URL,
+			resultParser: NewXMLResultParser(),
 		}
 		if _, err := c.Prepare("").Query(context.Background()); err == nil {
 			t.Errorf("Statement.Query() error = %v", err)
@@ -520,10 +525,11 @@ func TestStatement_Query(t *testing.T) {
 		))
 
 		c := &Client{
-			HTTPClient: *server.Client(),
-			Logger:     *logger.New(),
-			Endpoint:   server.URL,
-			prefixes:   map[string]URI{"foo": "bar"},
+			HTTPClient:   *server.Client(),
+			Logger:       *logger.New(),
+			Endpoint:     server.URL,
+			prefixes:     map[string]URI{"foo": "bar"},
+			resultParser: NewXMLResultParser(),
 		}
 		result, err := c.Prepare("").Query(context.Background(), Param{
 			Ordinal: 0,

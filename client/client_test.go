@@ -10,6 +10,18 @@ import (
 	"time"
 )
 
+func TestWithResultParser(t *testing.T) {
+	resultParser := NewXMLResultParser()
+	client := Client{}
+	if err := WithResultParser(resultParser)(&client); err != nil {
+		t.Error(err)
+		return
+	}
+	if got, want := client.resultParser, resultParser; got != want {
+		t.Errorf("TestWithResultParser() = %v, want %v", got, want)
+	}
+}
+
 func TestWithHTTPClient(t *testing.T) {
 	timeout := 30 * time.Second
 	httpClient := &http.Client{
