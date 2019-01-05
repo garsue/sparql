@@ -54,8 +54,6 @@ func (s *Statement) Query(
 	if err != nil {
 		return nil, err
 	}
-	defer s.c.Logger.LogCloseError(resp.Body)
-	s.c.Logger.Debug.Printf("%+v\n", resp)
 
 	if resp.StatusCode != http.StatusOK {
 		scanner := bufio.NewScanner(resp.Body)
@@ -89,7 +87,6 @@ func (s *Statement) request(ctx context.Context, params ...Param) (*http.Request
 
 	// Build the query
 	built := b.String()
-	s.c.Logger.Debug.Println(built)
 	url := request.URL.Query()
 	url.Set("query", built)
 	url.Set("format", s.c.resultParser.Format())

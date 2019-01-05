@@ -12,8 +12,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/garsue/sparql/logger"
 )
 
 func ExampleClient_Query_simple() {
@@ -357,7 +355,6 @@ func TestClient_Query(t *testing.T) {
 
 		c := &Client{
 			HTTPClient:   *server.Client(),
-			Logger:       *logger.New(),
 			Endpoint:     server.URL,
 			resultParser: NewXMLResultParser(),
 		}
@@ -375,7 +372,6 @@ func TestClient_Query(t *testing.T) {
 
 		c := &Client{
 			HTTPClient:   *server.Client(),
-			Logger:       *logger.New(),
 			Endpoint:     server.URL,
 			resultParser: NewXMLResultParser(),
 		}
@@ -403,7 +399,6 @@ func TestClient_Query(t *testing.T) {
 
 		c := &Client{
 			HTTPClient:   *server.Client(),
-			Logger:       *logger.New(),
 			Endpoint:     server.URL,
 			prefixes:     map[string]URI{"foo": "bar"},
 			resultParser: NewXMLResultParser(),
@@ -480,7 +475,6 @@ func TestStatement_Query(t *testing.T) {
 
 		c := &Client{
 			HTTPClient:   *server.Client(),
-			Logger:       *logger.New(),
 			Endpoint:     server.URL,
 			resultParser: NewXMLResultParser(),
 		}
@@ -498,7 +492,6 @@ func TestStatement_Query(t *testing.T) {
 
 		c := &Client{
 			HTTPClient:   *server.Client(),
-			Logger:       *logger.New(),
 			Endpoint:     server.URL,
 			resultParser: NewXMLResultParser(),
 		}
@@ -526,7 +519,6 @@ func TestStatement_Query(t *testing.T) {
 
 		c := &Client{
 			HTTPClient:   *server.Client(),
-			Logger:       *logger.New(),
 			Endpoint:     server.URL,
 			prefixes:     map[string]URI{"foo": "bar"},
 			resultParser: NewXMLResultParser(),
