@@ -10,14 +10,22 @@ import (
 
 // Client queries to its SPARQL endpoint.
 type Client struct {
-	HTTPClient http.Client
-	Logger     logger.Logger
-	Endpoint   string
-	prefixes   map[string]URI
+	HTTPClient   http.Client
+	Logger       logger.Logger
+	Endpoint     string
+	prefixes     map[string]URI
+	resultParser ResultParser
 }
 
 // Option sets an option to the SPARQL client.
 type Option func(*Client) error
+
+func WithResultParser(resultParser ResultParser) Option {
+	return func(c *Client) error {
+		c.resultParser = resultParser
+		return nil
+	}
+}
 
 // HTTPClient replaces default HTTP client.
 func WithHTTPClient(httpClient *http.Client) Option {
@@ -38,9 +46,10 @@ func WithPrefix(prefix string, uri URI) Option {
 // New returns `sparql.Client`.
 func New(endpoint string, opts ...Option) (*Client, error) {
 	client := &Client{
-		Logger:   *logger.New(),
-		Endpoint: endpoint,
-		prefixes: make(map[string]URI),
+		Logger:       *logger.New(),
+		Endpoint:     endpoint,
+		prefixes:     make(map[string]URI),
+		resultParser: NewXMLResultParser(),
 	}
 	for _, opt := range opts {
 		if err := opt(client); err != nil {
