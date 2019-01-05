@@ -4,14 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-
-	"github.com/garsue/sparql/logger"
 )
 
 // Client queries to its SPARQL endpoint.
 type Client struct {
 	HTTPClient   http.Client
-	Logger       logger.Logger
 	Endpoint     string
 	prefixes     map[string]URI
 	resultParser ResultParser
@@ -46,7 +43,6 @@ func WithPrefix(prefix string, uri URI) Option {
 // New returns `sparql.Client`.
 func New(endpoint string, opts ...Option) (*Client, error) {
 	client := &Client{
-		Logger:       *logger.New(),
 		Endpoint:     endpoint,
 		prefixes:     make(map[string]URI),
 		resultParser: NewXMLResultParser(),
@@ -66,7 +62,7 @@ func (c *Client) Close() error {
 }
 
 // Ping sends a HTTP HEAD request to the endpoint.
-func (c *Client) Ping(ctx context.Context) error {
+func (c *Client) Ping(ctx context.Context) (err error) {
 	request, err := http.NewRequest(http.MethodHead, c.Endpoint, nil)
 	if err != nil {
 		return err
@@ -76,8 +72,11 @@ func (c *Client) Ping(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer c.Logger.LogCloseError(resp.Body)
-	c.Logger.Debug.Printf("Ping %+v", resp)
+	defer func() {
+		if err2 := resp.Body.Close(); err2 != nil {
+			err = err2
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("SPARQL ping error. status code %d", resp.StatusCode)
