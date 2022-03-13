@@ -1,5 +1,5 @@
 [![GoDoc](https://godoc.org/github.com/garsue/sparql?status.svg)](https://godoc.org/github.com/garsue/sparql)
-[![Build Status](https://travis-ci.org/garsue/sparql.svg?branch=master)](https://travis-ci.org/garsue/sparql)
+![Build Status](https://github.com/garsue/sparql/actions/workflows/go.yml/badge.svg)
 [![codecov](https://codecov.io/gh/garsue/sparql/branch/master/graph/badge.svg)](https://codecov.io/gh/garsue/sparql)
 [![Go Report Card](https://goreportcard.com/badge/github.com/garsue/sparql)](https://goreportcard.com/report/github.com/garsue/sparql)
 
