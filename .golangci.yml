@@ -92,9 +92,40 @@ linters-settings:
     simple: true
     range-loops: true # Report preallocation suggestions on range loops, true by default
     for-loops: false # Report preallocation suggestions on for loops, false by default
-
+  funlen:
+    statements: 50
 
 linters:
   enable-all: true
   disable:
     - prealloc
+    - gofumpt
+    - wsl
+    - goerr113
+    - paralleltest
+    - cyclop
+    - errorlint
+    - exhaustivestruct
+    - gomnd
+    - ireturn
+    - nlreturn
+    - testpackage
+    - varnamelen
+    - wrapcheck
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen
+        - gocognit
+        - godot
+        - ifshort
+        - forcetypeassert
+        - rowserrcheck
+        - sqlclosecheck
+        - gocyclo
+        - dupl
+    - text: wrapperFunc
+      linters:
+        - gocritic

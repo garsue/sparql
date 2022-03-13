@@ -157,7 +157,6 @@ func TestRows_Close(t *testing.T) {
 	}
 }
 
-// nolint: gocyclo, dupl
 func TestRows_Next(t *testing.T) {
 	t.Run("ASK", func(t *testing.T) {
 		r := &Rows{
