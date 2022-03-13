@@ -99,12 +99,31 @@ linters:
   enable-all: true
   disable:
     - prealloc
+    - gofumpt
+    - wsl
+    - goerr113
+    - paralleltest
+    - cyclop
+    - errorlint
+    - exhaustivestruct
+    - gomnd
+    - ireturn
+    - nlreturn
+    - testpackage
+    - varnamelen
+    - wrapcheck
 
 issues:
   exclude-rules:
     - path: _test\.go
       linters:
         - funlen
+        - gocognit
+        - godot
+        - ifshort
+        - forcetypeassert
+        - rowserrcheck
+        - sqlclosecheck
     - text: wrapperFunc
       linters:
         - gocritic
