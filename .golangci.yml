@@ -105,3 +105,6 @@ issues:
     - path: _test\.go
       linters:
         - funlen
+    - text: wrapperFunc
+      linters:
+        - gocritic
