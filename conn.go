@@ -94,7 +94,7 @@ func argsToParams(args []driver.NamedValue) []client.Param {
 		params = append(params, client.Param{
 			Name:    a.Name,
 			Ordinal: a.Ordinal,
-			Value:   a.Value.(interface{}),
+			Value:   interface{}(a.Value),
 		})
 	}
 	return params
