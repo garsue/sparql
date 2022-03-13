@@ -22,7 +22,13 @@ jobs:
       run: go build -v ./...
 
     - name: Test
-      run: go test -race ./...
+      run: |
+        go test -race -cover ./...
+        go install github.com/haya14busa/goverage@master
+        goverage -coverprofile=coverage.txt ./...
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v3.1.0
