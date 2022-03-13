@@ -44,17 +44,21 @@ func (c *Client) Prepare(query string) *Statement {
 func (s *Statement) Query(
 	ctx context.Context,
 	params ...Param,
-) (QueryResult, error) {
+) (_ QueryResult, err error) {
 	request, err := s.request(ctx, params...)
 	if err != nil {
 		return nil, err
 	}
 
-	//nolint: bodyclose
 	resp, err := s.c.HTTPClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err2 := resp.Body.Close(); err2 != nil && err == nil {
+			err = err2
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		scanner := bufio.NewScanner(resp.Body)
