@@ -124,6 +124,8 @@ issues:
         - forcetypeassert
         - rowserrcheck
         - sqlclosecheck
+        - gocyclo
+        - dupl
     - text: wrapperFunc
       linters:
         - gocritic
