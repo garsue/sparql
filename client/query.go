@@ -50,6 +50,7 @@ func (s *Statement) Query(
 		return nil, err
 	}
 
+	//nolint: bodyclose
 	resp, err := s.c.HTTPClient.Do(request)
 	if err != nil {
 		return nil, err
