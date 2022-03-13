@@ -92,9 +92,16 @@ linters-settings:
     simple: true
     range-loops: true # Report preallocation suggestions on range loops, true by default
     for-loops: false # Report preallocation suggestions on for loops, false by default
-
+  funlen:
+    statements: 50
 
 linters:
   enable-all: true
   disable:
     - prealloc
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen
